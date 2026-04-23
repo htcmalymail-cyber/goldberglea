@@ -14,9 +14,9 @@ const USERS_DB = [
     role: "resident"
   },
   {
-    name: "Куратор",
-    phone: "000",
-    apartment: "admin",
+    name: "מלי",
+    phone: "0547966998",
+    apartment: "11",
     role: "admin"
   }
 ];
