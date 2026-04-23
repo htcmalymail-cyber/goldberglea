@@ -1,98 +1,223 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>הכי טוב בשכונה - ניהול בית משותף | שמירת קבלות בענן + וואטסאפ לדיירים</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #dcfce7 0%, #b8f0e6 50%, #a7e0f0 100%);
-            color: #1e293b;
-            padding: 24px 20px 50px;
-            min-height: 100vh;
-        }
-        .container { max-width: 1400px; margin: 0 auto; position: relative; z-index: 1; }
-        .card, .header {
-            background: rgba(255, 255, 255, 0.94);
-            backdrop-filter: blur(12px);
-            border-radius: 36px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(180, 230, 210, 0.7);
-        }
-        .header { text-align: center; padding: 28px; margin-bottom: 32px; }
-        .header h1 { font-size: 2.3rem; font-weight: 800; background: linear-gradient(135deg, #1f6e43, #2a7f6e); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        
-        .secret-admin-area {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background: transparent;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 9999;
-            opacity: 0;
-        }
-        .card-title {
-            font-size: 1.35rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 1.4rem;
-            border-right: 5px solid #46b3a3;
-            padding-right: 16px;
-            color: #1e5a4a;
-        }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px 8px; text-align: right; border-bottom: 1px solid #d4e9e2; vertical-align: middle; }
-        th { background: #e3f5ef; font-weight: 700; color: #1a5d4f; }
-        .amount-income { color: #2f855a; font-weight: 700; }
-        .amount-expense { color: #c9693c; font-weight: 700; }
-        .debt-positive { color: #2b6e3c; background: #e0f2e9; border-radius: 20px; padding: 4px 12px; display: inline-block; font-weight: bold;}
-        .debt-negative { color: #b85c1a; background: #fff0e0; border-radius: 20px; padding: 4px 12px; display: inline-block; font-weight: bold;}
-        button, .btn { background: #48b5a3; border: none; padding: 8px 18px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
-        button:hover { background: #3a9b8a; transform: scale(0.98); }
-        .whatsapp-btn { background: #25D366; }
-        .whatsapp-btn:hover { background: #128C7E; }
-        .attachment-icon { color: #48b5a3; cursor: pointer; font-size: 1.2rem; }
-        .delete-icon { color: #c9693e; margin-right: 8px; cursor: pointer; }
-        .edit-icon { color: #5f9e8e; margin-left: 6px; cursor: pointer; }
-        .whatsapp-icon { color: #25D366; margin-right: 8px; cursor: pointer; font-size: 1.2rem; }
-        .month-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
-        .month-btn { background: #f0faf7; color: #1e4b3f; border: 1px solid #cce5dd; }
-        .month-btn.active { background: #48b5a3; color: white; border: none; }
-        .year-btn { background: #e2f0ec; color: #1e5a4a; border: 1px solid #cce5dd; font-weight: bold; }
-        .year-btn.active { background: #2c7a6e; color: white; }
-        .forum-message { background: #fefef7; border-radius: 24px; padding: 14px; margin-bottom: 14px; border-right: 4px solid #6dc2b2; }
-        input, textarea, select { font-family: 'Inter', sans-serif; border-radius: 60px; border: 1px solid #cce2da; padding: 10px 16px; background: #ffffffdd; }
-        textarea { border-radius: 24px; }
-        .flex-between { display: flex; justify-content: space-between; align-items: center; }
-        .soft-teal-bg { background: #e2f6f1; border-radius: 32px; padding: 12px; margin-top: 12px; }
-        .fixed-payment-badge { font-size: 1.4rem; font-weight: bold; color: #1f6e43; }
-        .total-payment-btn { background: #f0a55a; padding: 10px 20px; font-size: 1rem; margin-right: 15px; }
-        @media (max-width: 700px) { .dashboard-grid { grid-template-columns: 1fr !important; } }
-        .summary-box { background: #fff8e7; border-radius: 24px; padding: 15px; margin-top: 15px; }
-        .info-note { font-size: 0.8rem; color: #2c6b5c; margin-top: 8px; }
-        .cloud-badge { background: #4285f4; color: white; border-radius: 20px; padding: 2px 8px; font-size: 0.7rem; margin-right: 8px; }
-        .loading-icon { animation: spin 1s linear infinite; margin-right: 8px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .upload-status { font-size: 0.75rem; color: #2c7a6e; margin-top: 5px; }
-        .phone-input-area { display: flex; gap: 10px; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cce5dd; flex-wrap: wrap; }
-        .phone-input-area input { flex: 2; }
-        .whatsapp-settings { background: #e8f5e9; border-radius: 24px; padding: 12px; margin-bottom: 15px; }
-        .resident-phone { font-size: 0.7rem; color: #25D366; direction: ltr; display: inline-block; margin-right: 8px; }
-        .add-phone-btn { background: #25D366; padding: 4px 10px; font-size: 0.7rem; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Домовой портал</title>
+
+<script src="users.js"></script>
+
+<style>
+body { margin:0; font-family:Arial; background:#eef6f4; }
+
+.hidden { display:none; }
+
+#login {
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.6);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.box {
+  background:#fff;
+  padding:20px;
+  width:300px;
+  border-radius:12px;
+}
+
+input, textarea {
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+}
+
+button {
+  width:100%;
+  padding:10px;
+  background:#2a9d8f;
+  color:#fff;
+  border:none;
+  border-radius:8px;
+}
+
+.container { padding:15px; }
+
+.card {
+  background:#fff;
+  padding:15px;
+  margin-bottom:15px;
+  border-radius:12px;
+}
+
+.admin {
+  border:2px solid #ffb703;
+}
+
+.row {
+  padding:5px 0;
+  border-bottom:1px solid #eee;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="box">
+    <h3>Вход</h3>
+    <input id="name" placeholder="Имя">
+    <input id="phone" placeholder="Телефон">
+    <input id="apt" placeholder="Квартира">
+    <button onclick="login()">Войти</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="container hidden" id="app">
+
+  <div class="card">
+    <h3>Профиль</h3>
+    <div id="profile"></div>
+  </div>
+
+  <div class="card">
+    <h3>Форум</h3>
+    <textarea id="msg"></textarea>
+    <button onclick="addPost()">Отправить</button>
+    <div id="forum"></div>
+  </div>
+
+  <div class="card">
+    <h3>Платежи</h3>
+    <input id="amount" placeholder="Сумма">
+    <button onclick="addPayment()">Добавить</button>
+    <div id="payments"></div>
+  </div>
+
+  <div class="card admin hidden" id="adminPanel">
+    <h3>Куратор</h3>
+    <button onclick="clearAll()">Очистить</button>
+  </div>
+
+</div>
+
+<script>
+
+let user = null;
+let forum = JSON.parse(localStorage.getItem("forum") || "[]");
+let payments = JSON.parse(localStorage.getItem("payments") || "[]");
+
+// ================= LOGIN =================
+function login() {
+
+  const name = document.getElementById("name").value;
+  const phone = document.getElementById("phone").value;
+  const apt = document.getElementById("apt").value;
+
+  const found = USERS_DB.find(u =>
+    u.name === name &&
+    u.phone === phone &&
+    u.apartment === apt
+  );
+
+  if(!found) {
+    alert("Нет доступа");
+    return;
+  }
+
+  user = found;
+  localStorage.setItem("user", JSON.stringify(user));
+
+  document.getElementById("login").style.display = "none";
+  document.getElementById("app").classList.remove("hidden");
+
+  init();
+}
+
+// ================= INIT =================
+function init() {
+
+  document.getElementById("profile").innerHTML =
+    `Имя: ${user.name}<br>Квартира: ${user.apartment}`;
+
+  if(user.role === "admin") {
+    document.getElementById("adminPanel").classList.remove("hidden");
+  }
+
+  render();
+}
+
+// ================= FORUM =================
+function addPost() {
+  const text = document.getElementById("msg").value;
+  if(!text) return;
+
+  forum.push({
+    user: user.name,
+    text,
+    time: new Date().toLocaleString()
+  });
+
+  localStorage.setItem("forum", JSON.stringify(forum));
+  document.getElementById("msg").value = "";
+  render();
+}
+
+// ================= PAYMENTS =================
+function addPayment() {
+  const amount = document.getElementById("amount").value;
+  if(!amount) return;
+
+  payments.push({
+    user: user.name,
+    apt: user.apartment,
+    amount,
+    time: new Date().toLocaleString()
+  });
+
+  localStorage.setItem("payments", JSON.stringify(payments));
+  document.getElementById("amount").value = "";
+  render();
+}
+
+// ================= RENDER =================
+function render() {
+
+  document.getElementById("forum").innerHTML =
+    forum.map(f =>
+      `<div class="row"><b>${f.user}</b>: ${f.text}</div>`
+    ).join("");
+
+  document.getElementById("payments").innerHTML =
+    payments.map(p =>
+      `<div class="row">${p.user} | ${p.amount} ₪</div>`
+    ).join("");
+}
+
+// ================= ADMIN =================
+function clearAll() {
+  if(confirm("Очистить всё?")) {
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+// AUTO LOGIN
+const saved = localStorage.getItem("user");
+if(saved) {
+  user = JSON.parse(saved);
+  document.getElementById("login").style.display = "none";
+  document.getElementById("app").classList.remove("hidden");
+  init();
+}
+
+</script>
+
+</body>
+</html>        .add-phone-btn { background: #25D366; padding: 4px 10px; font-size: 0.7rem; }
         .resident-list { max-height: 200px; overflow-y: auto; margin-top: 10px; }
         .resident-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #cce5dd; }
         .resident-name { font-weight: bold; }
