@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>הכי טוב בשכונה - ניהול בית משותף | שמירת קבלות בענן + וואטסאפ לדיירים</title>
+    <title>גולדברג ליה - ניהול בית משותף</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
@@ -31,7 +31,6 @@
         .header { text-align: center; padding: 28px; margin-bottom: 32px; }
         .header h1 { font-size: 2.3rem; font-weight: 800; background: linear-gradient(135deg, #1f6e43, #2a7f6e); -webkit-background-clip: text; background-clip: text; color: transparent; }
         
-        /* Модальное окно согласия */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -59,11 +58,7 @@
             from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
         }
-        .modal-agreement h3 {
-            font-size: 1.6rem;
-            margin-bottom: 15px;
-            text-align: center;
-        }
+        .modal-agreement h3 { font-size: 1.6rem; margin-bottom: 15px; text-align: center; }
         .modal-agreement .agreement-text {
             background: rgba(255,255,255,0.15);
             border-radius: 20px;
@@ -74,9 +69,6 @@
             max-height: 400px;
             overflow-y: auto;
         }
-        .modal-agreement .agreement-text p {
-            margin: 8px 0;
-        }
         .modal-agreement .checkbox-label {
             display: flex;
             align-items: center;
@@ -85,45 +77,15 @@
             cursor: pointer;
             font-weight: 500;
         }
-        .modal-agreement input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-        .modal-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
-        .modal-buttons button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 50px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-accept {
-            background: #ffd966;
-            color: #2c5a4a;
-        }
-        .btn-accept:hover {
-            background: #ffcd38;
-            transform: scale(1.02);
-        }
-        .btn-decline {
-            background: rgba(255,255,255,0.3);
-            color: white;
-        }
-        .btn-decline:hover {
-            background: rgba(255,255,255,0.5);
-        }
-        .btn-accept:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .modal-agreement input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+        .modal-buttons { display: flex; gap: 15px; justify-content: center; }
+        .modal-buttons button { padding: 12px 24px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-accept { background: #ffd966; color: #2c5a4a; }
+        .btn-accept:hover { background: #ffcd38; transform: scale(1.02); }
+        .btn-decline { background: rgba(255,255,255,0.3); color: white; }
+        .btn-decline:hover { background: rgba(255,255,255,0.5); }
+        .btn-accept:disabled { opacity: 0.5; cursor: not-allowed; }
         
-        /* Блок авторизации */
         .auth-card {
             background: rgba(255,255,255,0.96);
             border-radius: 36px;
@@ -131,52 +93,14 @@
             margin-bottom: 25px;
             border: 2px solid #48b5a3;
         }
-        .auth-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: #1e5a4a;
-        }
-        .auth-input-group {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-        .auth-input-group input {
-            flex: 1;
-            padding: 12px 18px;
-            border-radius: 60px;
-            border: 1px solid #cce2da;
-            font-size: 1rem;
-        }
-        .auth-status {
-            margin-top: 12px;
-            padding: 10px;
-            border-radius: 30px;
-            font-size: 0.85rem;
-        }
-        .auth-status.success {
-            background: #d4edda;
-            color: #155724;
-        }
-        .auth-status.error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        .auth-status.info {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-        
-        .guest-warning {
-            background: #fff3cd;
-            border-right: 5px solid #ffc107;
-            padding: 15px;
-            border-radius: 20px;
-            margin: 15px 0;
-            text-align: center;
-        }
+        .auth-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 15px; color: #1e5a4a; }
+        .auth-input-group { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 15px; }
+        .auth-input-group input { flex: 1; padding: 12px 18px; border-radius: 60px; border: 1px solid #cce2da; font-size: 1rem; }
+        .auth-status { margin-top: 12px; padding: 10px; border-radius: 30px; font-size: 0.85rem; }
+        .auth-status.success { background: #d4edda; color: #155724; }
+        .auth-status.error { background: #f8d7da; color: #721c24; }
+        .auth-status.info { background: #d1ecf1; color: #0c5460; }
+        .guest-warning { background: #fff3cd; border-right: 5px solid #ffc107; padding: 15px; border-radius: 20px; margin: 15px 0; text-align: center; }
         
         .card-title {
             font-size: 1.35rem;
@@ -235,23 +159,9 @@
         .resident-phone-display { direction: ltr; font-size: 0.8rem; color: #25D366; }
         .small-btn { padding: 4px 8px; font-size: 0.7rem; margin-right: 5px; }
         .sync-status { position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; z-index: 9999; }
-        .logout-btn {
-            background: #c9693e;
-            margin-right: 15px;
-        }
-        .logout-btn:hover {
-            background: #a8552c;
-        }
-        .user-badge {
-            background: #48b5a3;
-            padding: 6px 15px;
-            border-radius: 40px;
-            color: white;
-            font-size: 0.8rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .logout-btn { background: #c9693e; margin-right: 15px; }
+        .logout-btn:hover { background: #a8552c; }
+        .user-badge { background: #48b5a3; padding: 6px 15px; border-radius: 40px; color: white; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 8px; }
     </style>
 </head>
 <body>
@@ -259,11 +169,11 @@
 <div class="container">
     <div class="header">
         <div><i class="fas fa-crown" style="font-size:2rem; color:#f4b942;"></i> <i class="fas fa-home" style="font-size:2rem; color:#3d8f7e;"></i> <i class="fab fa-whatsapp" style="font-size:2rem; color:#25D366;"></i> <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:#4285f4;"></i> <i class="fas fa-cloud" style="font-size:2rem; color:#00C853;"></i></div>
-        <h1><i class="fas fa-building"></i> "הכי טוב בשכונה" – ניהול בית משותף</h1>
+        <h1><i class="fas fa-building"></i> גולדברג ליה – ניהול בית משותף</h1>
         <p>🌿 קבלות ב-ImgBB | שליחת קוויטנציה בוואטסאפ לדיירים | ☁️ סינכרון אוטומטי בענן | 📊 הוצאות מעל 500₪ מתחלקות בין כל הדיירים</p>
     </div>
 
-    <!-- БЛОК АВТОРИЗАЦИИ -->
+    <!-- Блок авторизации -->
     <div class="auth-card" id="authCard">
         <div class="auth-title"><i class="fas fa-key"></i> כניסה לתושבים</div>
         <div class="auth-input-group">
@@ -278,7 +188,6 @@
         <div id="userBadgeArea" style="margin-top: 10px;"></div>
     </div>
 
-    <!-- ОСТАЛЬНОЙ КОНТЕНТ (часть будет скрыта для гостей) -->
     <div id="restrictedContent" style="display: none;">
         <div class="card" style="margin-bottom: 25px; padding: 1.5rem;">
             <div class="card-title"><i class="fas fa-calendar-alt"></i> בחירת תקופה – מינואר 2026 ואילך</div>
@@ -314,18 +223,15 @@
                 <div class="flex-between">
                     <strong><i class="fab fa-whatsapp"></i> ניהול דיירים ומספרי טלפון לשליחת קוויטנציה</strong>
                 </div>
-                
                 <div class="phone-input-area">
                     <input type="text" id="newResidentName" placeholder="שם הדירה/דייר (לדוגמה: דירה 4 - רונית כהן)" style="flex:2;">
                     <input type="tel" id="newResidentPhone" placeholder="מספר טלפון (לדוגמה: 972501234567)" style="flex:1;">
                     <button id="addResidentBtn" class="btn" style="background:#25D366;"><i class="fas fa-plus"></i> הוסף דייר</button>
                 </div>
-                
                 <div style="margin-top: 12px;">
                     <strong><i class="fas fa-users"></i> רשימת דיירים:</strong>
                     <div id="residentsList" class="resident-list"></div>
                 </div>
-                
                 <div class="info-note" style="margin-top: 8px;">
                     <i class="fab fa-whatsapp"></i> בעת הוספת תקבול, הקוויטנציה תישלח אוטומטית לדייר לפי השם שהזנת
                 </div>
@@ -346,7 +252,7 @@
                     <table style="width:100%">
                         <thead><tr><th>דירה/שם</th><th>חודש</th><th>סכום ששולם</th><th>חודשי + חוב מיוחד</th><th></th></tr></thead>
                         <tbody id="paymentsBody"></tbody>
-                    </table>
+                    月底
                 </div>
                 <div class="summary-box" id="totalPaymentsSummary" style="display:none;">
                     <strong><i class="fas fa-chart-simple"></i> סיכום תקבולים מינואר 2026:</strong>
@@ -404,7 +310,6 @@
         </div>
     </div>
     
-    <!-- Сообщение для гостей -->
     <div id="guestMessage" class="guest-warning" style="display: none;">
         <i class="fas fa-lock"></i> <strong>🔒 גישה מוגבלת לאורחים</strong><br>
         כדי להשתתף בפורום, לראות קבלות ותקבולים, ולהוסיף הצעות - יש לבצע <strong>הזדהות תושב</strong> למעלה בעמוד.
@@ -415,15 +320,16 @@
 <div class="sync-status" id="syncStatus">☁️ מתחבר לענן...</div>
 
 <script>
-    // Firebase Config
+    // Firebase Config - УСТАНОВЛЕНО ДЛЯ ПРОЕКТА goldberg-lea
     const firebaseConfig = {
-        apiKey: "AIzaSyD6Pdxh6nHHys3hHr15YH925DiBqEEKjNI",
-        authDomain: "home-menegment-67459.firebaseapp.com",
-        databaseURL: "https://home-menegment-67459-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "home-menegment-67459",
-        storageBucket: "home-menegment-67459.firebasestorage.app",
-        messagingSenderId: "986195989800",
-        appId: "1:986195989800:web:0e55a9f07d63d2f6142c1d"
+        apiKey: "AIzaSyCbMAYlOnkl1E4hJ-dVsbCuFaSfMNjjV68",
+        authDomain: "goldberg-lea.firebaseapp.com",
+        databaseURL: "https://goldberg-lea-default-rtdb.firebaseio.com",
+        projectId: "goldberg-lea",
+        storageBucket: "goldberg-lea.firebasestorage.app",
+        messagingSenderId: "1016103969258",
+        appId: "1:1016103969258:web:b8e2dc740a13f2fa4a9293",
+        measurementId: "G-M5YRMX2GFV"
     };
     
     firebase.initializeApp(firebaseConfig);
@@ -441,8 +347,7 @@
     let selectedFile = null;
     let isAdmin = false;
     let isLoading = true;
-    let currentUser = null; // { phone, apartment, name }
-    
+    let currentUser = null;
     let specialDebts = [];
     
     const IMGBB_API_KEY = "f9bb791d0681c7cf81b6a7cd1456e4aa";
@@ -455,7 +360,7 @@
         { value: '10', name: 'אוקטובר' }, { value: '11', name: 'נובמבר' }, { value: '12', name: 'דצמבר' }
     ];
     
-    // Функции авторизации и модального окна
+    // Функции авторизации
     function showAgreementModal(phone, apartment, residentName, callback) {
         const modalDiv = document.createElement('div');
         modalDiv.className = 'modal-overlay';
@@ -492,7 +397,6 @@
         
         acceptBtn.onclick = () => {
             document.body.removeChild(modalDiv);
-            // Сохраняем авторизацию
             currentUser = { phone, apartment, name: residentName };
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
             updateAuthUI();
@@ -531,7 +435,6 @@
             authLogoutBtn.style.display = 'inline-block';
             restrictedContent.style.display = 'block';
             guestMessage.style.display = 'none';
-            // Показываем контент
         } else {
             userBadgeArea.innerHTML = '';
             authPhone.disabled = false;
@@ -556,12 +459,8 @@
         statusDiv.innerHTML = '<i class="fas fa-info-circle"></i> התנתקת בהצלחה. כעת אתה במצב אורח.';
     }
     
-    // Проверка, имеет ли пользователь доступ к функциям
-    function isResident() {
-        return currentUser !== null;
-    }
+    function isResident() { return currentUser !== null; }
     
-    // Обновление прав UI
     function updateUIPermissions() {
         const canEdit = isAdmin;
         const canViewRestricted = isResident() || isAdmin;
@@ -574,28 +473,17 @@
         const suggestionsCard = document.getElementById('suggestionsCard');
         const paymentsCard = document.getElementById('paymentsCard');
         
-        // Для resident показываем карточки, но без редактирования (кроме админа)
         if (paymentsEditArea) paymentsEditArea.style.display = canEdit ? 'flex' : 'none';
         if (expenseFileArea) expenseFileArea.style.display = canEdit ? 'flex' : 'none';
         if (editDueBtnWrapper) editDueBtnWrapper.style.display = canEdit ? 'block' : 'none';
         if (totalPaymentsSummary) totalPaymentsSummary.style.display = canEdit ? 'block' : 'none';
         if (whatsappSettings) whatsappSettings.style.display = canEdit ? 'block' : 'none';
         
-        // Для resident все карточки видны, для гостя - скрыты
         if (paymentsCard) paymentsCard.style.display = canViewRestricted ? 'block' : 'none';
         if (forumCard) forumCard.style.display = canViewRestricted ? 'block' : 'none';
         if (suggestionsCard) suggestionsCard.style.display = canViewRestricted ? 'block' : 'none';
-        
-        // Дополнительно скрываем кнопки удаления/редактирования в таблицах, если не админ
-        if (!isAdmin) {
-            // Косметически скроем иконки удаления через CSS классы
-            document.querySelectorAll('.delete-icon, .edit-icon, .whatsapp-icon').forEach(el => {
-                if (el.closest('td')) el.style.display = 'none';
-            });
-        }
     }
     
-    // Остальные функции (загрузка, сохранение, рендер) остаются теми же, но с учётом прав
     function updateSyncStatus(text, isError = false) {
         const statusEl = document.getElementById('syncStatus');
         if (statusEl) {
@@ -658,7 +546,7 @@
         try {
             const snapshot = await database.ref('/').once('value');
             const data = snapshot.val();
-            if (data) {
+            if (data && Object.keys(data).length > 0) {
                 payments = (data.payments || []).filter(p => isAfterStartDate(p.month));
                 expenses = (data.expenses || []).filter(e => isAfterStartDate(e.month));
                 forum = data.forum || [];
@@ -667,9 +555,10 @@
                 monthlyDue = data.monthlyDue || 70;
                 specialDebts = data.specialDebts || [];
             } else {
+                // Данные по умолчанию для нового проекта
                 payments = [];
                 expenses = [];
-                forum = [{ id: 'f1', author: 'מיכל (דירה 12)', text: 'ברוכים הבאים לשנת 2026! 🎉', timestamp: new Date().toISOString() }];
+                forum = [{ id: 'f1', author: 'מיכל (דירה 12)', text: 'ברוכים הבאים! 🎉', timestamp: new Date().toISOString() }];
                 suggestions = [];
                 residents = [
                     { id: 'r1', name: 'רונית כהן (דירה 4)', phone: '972501234567' },
@@ -677,10 +566,14 @@
                     { id: 'r3', name: 'מיכל (דירה 12)', phone: '972503456789' }
                 ];
                 specialDebts = [];
+                // Сохраняем начальные данные
+                await saveToFirebase('/residents', residents);
+                await saveToFirebase('/forum', forum);
+                await saveToFirebase('/monthlyDue', monthlyDue);
             }
             updateSyncStatus('✅ מסונכרן עם הענן');
         } catch (error) {
-            console.error(error);
+            console.error('Error loading:', error);
             updateSyncStatus('❌ שגיאת התחברות', true);
         } finally {
             isLoading = false;
@@ -694,7 +587,7 @@
             updateSyncStatus('☁️ שומר...');
             setTimeout(() => updateSyncStatus('✅ מסונכרן'), 1000);
         } catch (error) {
-            console.error(error);
+            console.error('Error saving:', error);
             updateSyncStatus('❌ שגיאה בשמירה', true);
         }
     }
@@ -737,7 +630,7 @@
         const date = new Date();
         const formattedDate = `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}`;
         const typeText = isSpecial ? "💎 *תשלום חוב מיוחד* 💎" : "✅ *תקבול אחזקה* ✅";
-        const message = `🏢 *קוויטנציה - "הכי טוב בשכונה"* 🏢\n━═━═━═━═━═━═━\n${typeText}\n━═━═━═━═━═━═━\n👤 *דירה/שם:* ${residentName}\n💰 *סכום:* ${amount.toFixed(2)} ₪\n📅 *חודש:* ${month}\n🕒 *תאריך קבלה:* ${formattedDate}\n━═━═━═━═━═━═━\n💚 *תודה על התשלום!* \n🏠 בית משותף "הכי טוב בשכונה"\n━═━═━═━═━═━═━`;
+        const message = `🏢 *קוויטנציה - "גולדברג ליה"* 🏢\n━═━═━═━═━═━═━\n${typeText}\n━═━═━═━═━═━═━\n👤 *דירה/שם:* ${residentName}\n💰 *סכום:* ${amount.toFixed(2)} ₪\n📅 *חודש:* ${month}\n🕒 *תאריך:* ${formattedDate}\n━═━═━═━═━═━═━\n💚 *תודה!*\n🏠 בית משותף גולדברג ליה`;
         const encodedMessage = encodeURIComponent(message);
         window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
         return true;
@@ -997,12 +890,9 @@
     }
     
     function renderAll() {
-        // Показываем/скрываем UI в зависимости от прав
         updateUIPermissions();
         
-        // Если нет доступа к платежам — не рендерим дальше (или показываем пустоту)
         if (!isResident() && !isAdmin) {
-            // Для гостя скрываем таблицы полностью
             document.getElementById('paymentsBody').innerHTML = '<tr><td colspan="5">🔒 לצפייה נדרשת הזדהות תושב</td></tr>';
             document.getElementById('expensesBody').innerHTML = '<tr><td colspan="5">🔒 לצפייה נדרשת הזדהות תושב</td></tr>';
             document.getElementById('forumContainer').innerHTML = '<div class="forum-message">🔒 הפורום זמין רק לתושבים מאומתים</div>';
@@ -1010,7 +900,6 @@
             return;
         }
         
-        // Рендер платежей
         let filteredPay = filterByMonth(payments, 'month');
         let allPayers = new Set();
         payments.forEach(p => { if(isAfterStartDate(p.month)) allPayers.add(p.payer); });
@@ -1020,10 +909,10 @@
         let totalPaymentsSum = 0;
         for(let payer of allPayers) {
             let debtInfo = calculateDebtForPayer(payer);
-            let monthlyDebtText = debtInfo.monthlyDebt > 0 ? `חודשי: ${debtInfo.monthlyDebt.toFixed(2)}` : (debtInfo.monthlyDebt < 0 ? `יתרה חודשית: ${Math.abs(debtInfo.monthlyDebt).toFixed(2)}` : 'חודשי: מאוזן');
+            let monthlyDebtText = debtInfo.monthlyDebt > 0 ? `חודשי: ${debtInfo.monthlyDebt.toFixed(2)}` : (debtInfo.monthlyDebt < 0 ? `יתרה: ${Math.abs(debtInfo.monthlyDebt).toFixed(2)}` : 'מאוזן');
             let monthlyDebtClass = debtInfo.monthlyDebt > 0 ? "debt-negative" : (debtInfo.monthlyDebt < 0 ? "debt-positive" : "");
             let specialDebtText = debtInfo.specialDebt > 0 ? `מיוחד: ${debtInfo.specialDebt.toFixed(2)}` : '';
-            let totalDebtText = `סה"כ חוב: ${debtInfo.totalDebt.toFixed(2)}`;
+            let totalDebtText = `סה"כ: ${debtInfo.totalDebt.toFixed(2)}`;
             let totalDebtClass = debtInfo.totalDebt > 0 ? "debt-negative" : (debtInfo.totalDebt < 0 ? "debt-positive" : "");
             
             let payerFilteredPayments = filteredPay.filter(p => p.payer === payer);
@@ -1032,11 +921,9 @@
             } else {
                 payerFilteredPayments.forEach(p => {
                     totalPaymentsSum += p.amount;
-                    const hasPhone = getResidentPhoneByName(p.payer) ? true : false;
                     paymentsRowsHtml += `<tr>
                         <td>${escapeHtml(p.payer)} ${isAdmin ? `<i class="fas fa-edit edit-icon" onclick="editPayer('${p.id}')"></i>` : ''}
-                        ${isAdmin ? `<i class="fab fa-whatsapp whatsapp-icon" onclick="sendReceiptForPayment('${p.id}')" title="שלח קוויטנציה בוואטסאפ" style="${hasPhone ? '' : 'opacity:0.5;'}"></i>` : ''}
-                        ${!hasPhone && isAdmin ? `<span style="font-size:0.6rem; color:gray;">(ללא טלפון)</span>` : ''}</td>
+                        ${isAdmin ? `<i class="fab fa-whatsapp whatsapp-icon" onclick="sendReceiptForPayment('${p.id}')"></i>` : ''}</td>
                         <td>${p.month}</td>
                         <td class="amount-income">${p.amount.toFixed(2)} ₪</td>
                         <td><span class="${monthlyDebtClass}">${monthlyDebtText}</span> ${specialDebtText ? `<span class="special-debt">${specialDebtText}</span>` : ''}<br><span class="${totalDebtClass}">${totalDebtText}</span></td>
@@ -1045,21 +932,20 @@
                 });
             }
         }
-        if(paymentsRowsHtml === '') paymentsRowsHtml = '<tr><td colspan="5">אין תקבולים בתקופה זו</td></tr>';
+        if(paymentsRowsHtml === '') paymentsRowsHtml = '<tr><td colspan="5">אין תקבולים</td></tr>';
         document.getElementById('paymentsBody').innerHTML = paymentsRowsHtml;
         document.getElementById('totalPaymentsFiltered').innerText = totalPaymentsSum.toFixed(2);
         document.getElementById('totalPaymentsSinceStart').innerHTML = `${getTotalPaymentsSinceStart().toFixed(2)} ₪`;
         
-        // Рендер расходов
         let filteredExp = filterByMonth(expenses, 'month');
         let expensesHtml = filteredExp.map(e => {
             const hasCloud = e.cloudUrl && e.cloudUrl.trim() !== '';
             const isSpecial = e.amount > 500;
             return `<tr>
-                <td>${escapeHtml(e.desc)} ${isSpecial ? '<span class="special-debt" style="background:#c9693e20;">(חולק בין דיירים)</span>' : ''} ${isAdmin ? `<i class="fas fa-edit edit-icon" onclick="editExpenseDesc('${e.id}')"></i>` : ''}</td>
+                <td>${escapeHtml(e.desc)} ${isSpecial ? '<span class="special-debt">(חולק)</span>' : ''} ${isAdmin ? `<i class="fas fa-edit edit-icon" onclick="editExpenseDesc('${e.id}')"></i>` : ''}</td>
                 <td>${e.month}</td>
                 <td class="amount-expense">${e.amount.toFixed(2)} ₪</td>
-                <td>${hasCloud ? `<i class="fas fa-cloud-upload-alt attachment-icon" onclick="viewCloudFile('${e.cloudUrl}','${escapeHtml(e.fileName)}')" style="color:#4285f4; cursor:pointer;"></i> <span class="cloud-badge">ענן</span> ${escapeHtml((e.fileName || '').substring(0,15))}` : '❌ ללא קבלה'}</td>
+                <td>${hasCloud ? `<i class="fas fa-cloud-upload-alt attachment-icon" onclick="viewCloudFile('${e.cloudUrl}','${escapeHtml(e.fileName)}')"></i> <span class="cloud-badge">ענן</span>` : '❌ ללא קבלה'}</td>
                 <td>${isAdmin ? `<i class="fas fa-trash-alt delete-icon" onclick="deleteExpense('${e.id}')"></i>` : ''}</td>
             </tr>`;
         }).join('');
@@ -1069,11 +955,9 @@
         let balance = getTotalPaymentsSinceStart() - getTotalExpensesSinceStart();
         document.getElementById('balanceFromExpenses').innerText = balance.toFixed(2);
         
-        // Рендер форума
         let forumHtml = forum.slice().reverse().map(f => `<div class="forum-message"><strong><i class="fas fa-user"></i> ${escapeHtml(f.author)}</strong> <small>${new Date(f.timestamp).toLocaleDateString('he-IL')}</small><div>${escapeHtml(f.text)}</div></div>`).join('');
         document.getElementById('forumContainer').innerHTML = forumHtml || '<div>אין הודעות</div>';
         
-        // Рендер предложений
         let suggHtml = suggestions.map(s => `<div class="forum-message"><div><strong>${escapeHtml(s.author)}</strong> מציע: ${escapeHtml(s.title)} ${isAdmin ? `<i class="fas fa-edit edit-icon" onclick="editSuggestion('${s.id}')"></i> <i class="fas fa-trash-alt delete-icon" onclick="deleteSuggestion('${s.id}')"></i>` : ''}</div><div><button class="vote-up" data-id="${s.id}"><i class="fas fa-thumbs-up"></i> ${s.up}</button> <button class="vote-down" data-id="${s.id}"><i class="fas fa-thumbs-down"></i> ${s.down}</button></div></div>`).join('');
         document.getElementById('suggestionsContainer').innerHTML = suggHtml || '<div>אין הצעות</div>';
         
@@ -1110,7 +994,6 @@
     function deleteSuggestion(id) { if(isAdmin) { suggestions = suggestions.filter(s => s.id !== id); saveAllData(); } }
     function editSuggestion(id) { if(isAdmin) { let s = suggestions.find(s => s.id === id); if(s) { let newTitle = prompt("ערוך הצעה:", s.title); if(newTitle && newTitle.trim()) { s.title = newTitle.trim(); saveAllData(); } } } }
     
-    // Назначение обработчиков
     document.getElementById('addPaymentBtn').onclick = addPaymentWithWhatsApp;
     document.getElementById('addExpenseBtn').onclick = addExpenseWithCloud;
     document.getElementById('addResidentBtn').onclick = addResident;
@@ -1125,7 +1008,6 @@
         });
     }
     
-    // Авторизация
     document.getElementById('authCheckBtn').onclick = () => {
         const phone = document.getElementById('authPhone').value.trim();
         const apartment = document.getElementById('authApartment').value.trim();
@@ -1140,21 +1022,19 @@
             document.getElementById('authStatus').innerHTML = '<i class="fas fa-times-circle"></i> הפרטים לא נמצאו במערכת. אנא פנה לוועד הבית.';
             return;
         }
-        // Показываем модальное окно согласия
         showAgreementModal(phone, apartment, residentName, (agreed) => {
             if (agreed) {
                 document.getElementById('authStatus').className = 'auth-status success';
                 document.getElementById('authStatus').innerHTML = `<i class="fas fa-check-circle"></i> ברוך הבא ${escapeHtml(residentName)}! יש לך גישה מלאה.`;
             } else {
                 document.getElementById('authStatus').className = 'auth-status info';
-                document.getElementById('authStatus').innerHTML = '<i class="fas fa-info-circle"></i> ההזדהות בוטלה. אתה נשאר במצב אורח עם גישה מוגבלת.';
+                document.getElementById('authStatus').innerHTML = '<i class="fas fa-info-circle"></i> ההזדהות בוטלה. אתה נשאר במצב אורח.';
             }
         });
     };
     
     document.getElementById('authLogoutBtn').onclick = logout;
     
-    // Секретный вход для админа
     let clickCount = 0;
     document.getElementById('secretAdminTrigger').addEventListener('click', () => {
         clickCount++;
@@ -1177,7 +1057,6 @@
     if(editDueBtn) editDueBtn.addEventListener('click', editMonthlyDue);
     if(showTotalPaymentsBtn) showTotalPaymentsBtn.addEventListener('click', showTotalPaymentsPopup);
     
-    // Глобальные функции
     window.deletePayment = deletePayment;
     window.deleteExpense = deleteExpense;
     window.editPayer = editPayer;
@@ -1189,7 +1068,6 @@
     window.deleteResident = deleteResident;
     window.editResidentPhone = editResidentPhone;
     
-    // Восстановление сессии
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
         try {
@@ -1197,7 +1075,6 @@
         } catch(e) {}
     }
     
-    // Запуск
     loadAllDataFromFirebase().then(() => {
         setupRealtimeListeners();
         initMonthSelector();
