@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
@@ -188,7 +189,7 @@
             <div style="overflow-x:auto;">
                 <table style="width:100%">
                     <thead>
-                        <tr><th>דירה/שם</th><th>חודשים</th><th>סה"כ לחיוב</th><th>שולם רגיל</th><th>יתרה רגילה</th><th>מיוחד</th><th>סה"כ חוב</th><th></th></table>
+                        <tr><th>דירה/שם</th><th>חודשים</th><th>סה"כ לחיוב</th><th>שולם רגיל</th><th>יתרה רגילה</th><th>מיוחד</th><th>סה"כ חוב</th><th></th></tr>
                     </thead>
                     <tbody id="paymentsBody"></tbody>
                 月底
@@ -258,7 +259,7 @@
 <div class="sync-status" id="syncStatus">☁️ מתחבר...</div>
 
 <script>
-    // ========== FIREBASE ==========
+    // ========== הגדרות Firebase ==========
     const firebaseConfig = {
         apiKey: "AIzaSyCbMAYlOnkl1E4hJ-dVsbCuFaSfMNjjV68",
         authDomain: "goldberg-lea.firebaseapp.com",
@@ -268,10 +269,12 @@
         messagingSenderId: "1016103969258",
         appId: "1:1016103969258:web:b8e2dc740a13f2fa4a9293"
     };
+    
+    // אתחול Firebase
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     
-    // ========== VARIABLES ==========
+    // ========== משתנים גלובליים ==========
     let payments = [];
     let expenses = [];
     let forum = [];
@@ -296,12 +299,34 @@
         { value: '10', name: 'אוקטובר' }, { value: '11', name: 'נובמבר' }, { value: '12', name: 'דצמבר' }
     ];
     
-    // ========== HELPERS ==========
-    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
-    function cleanPhone(phone) { let p = phone.replace(/\D/g,''); if(p.startsWith('0')) p = '972'+p.substring(1); return p; }
-    function isAfterStart(dateStr) { if(!dateStr) return false; let [y,m] = dateStr.split('-'); return new Date(parseInt(y), parseInt(m)-1) >= START_DATE; }
+    // ========== פונקציות עזר ==========
+    function escapeHtml(str) { 
+        if(!str) return ''; 
+        return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); 
+    }
     
-    // ========== REAL DEBT CALCULATIONS ==========
+    function cleanPhone(phone) { 
+        let p = phone.replace(/\D/g,''); 
+        if(p.startsWith('0')) p = '972'+p.substring(1); 
+        return p; 
+    }
+    
+    function isAfterStart(dateStr) { 
+        if(!dateStr) return false; 
+        let [y,m] = dateStr.split('-'); 
+        return new Date(parseInt(y), parseInt(m)-1) >= START_DATE; 
+    }
+    
+    function updateSyncStatus(text, isError) {
+        let el = document.getElementById('syncStatus');
+        if(el) {
+            el.innerHTML = text;
+            if(isError) el.style.background = 'rgba(220,50,50,0.8)';
+            else el.style.background = 'rgba(0,0,0,0.7)';
+        }
+    }
+    
+    // ========== חישובי חובות אמיתיים ==========
     function getMonthsList() {
         let months = [];
         let year = START_DATE.getFullYear();
@@ -329,23 +354,23 @@
     function calculateSpecialDebtReal(residentName) {
         let total = 0;
         specialDebts.forEach(debt => {
-            const paid = debt.payments.find(p => p.payer === residentName)?.amount || 0;
-            const owe = debt.sharePerResident - paid;
-            if(owe > 0) total += owe;
+            const payment = debt.payments.find(p => p.payer === residentName);
+            if(payment && payment.amount < debt.sharePerResident) {
+                total += debt.sharePerResident - payment.amount;
+            }
         });
         return total;
     }
     
     function getTotalRegularPaymentsReal(residentName) {
-        return payments.filter(p => p.payer === residentName && p.type === 'regular').reduce((s,p)=>s+p.amount,0);
+        return payments.filter(p => p.payer === residentName && p.type === 'regular').reduce((s,p) => s + p.amount, 0);
     }
     
     function getRealTotalDebt(residentName, monthsList) {
         return calculateRegularDebtReal(residentName, monthsList) + calculateSpecialDebtReal(residentName);
     }
     
-    // ========== MASKING ==========
-    // מחזיר רשימה של עד 3 חייבים עם החובות הגדולים ביותר (אמיתיים)
+    // ========== פונקציות מיסוך ==========
     function getTopDebtors(monthsList) {
         let debtors = [];
         for(let resident of residents) {
@@ -355,21 +380,18 @@
             }
         }
         debtors.sort((a,b) => b.debt - a.debt);
-        return debtors.slice(0, 3); // עד 3 החייבים הגדולים
+        return debtors.slice(0, 3);
     }
     
-    // מחזיר סכום מוסווה (50-100 שקלים)
     function getMaskedDebtAmount() {
-        return 50 + Math.random() * 50; // 50-100
+        return 50 + (Math.random() * 50);
     }
     
-    // ========== DISPLAY DEBT (WITH MASKING) ==========
     function getDisplayDebt(residentName, monthsList, isCurrentUser) {
         const realDebt = getRealTotalDebt(residentName, monthsList);
         const topDebtors = getTopDebtors(monthsList);
         const isInTopDebtors = topDebtors.some(d => d.name === residentName);
         
-        // אם זה המשתמש הנוכחי -> מציגים אמת
         if(isCurrentUser) {
             return {
                 totalDebt: realDebt,
@@ -380,8 +402,8 @@
             };
         }
         
-        // מצב אדמין שמציג נתונים אמיתיים
-        if(showRealData && isAdmin) {
+        if((showRealData && isAdmin) || (isAdmin && !showRealData && document.getElementById('toggleRealBtn') && document.getElementById('toggleRealBtn').innerText.includes('אמיתיים'))) {
+            // מצב הצגת נתונים אמיתיים
             return {
                 totalDebt: realDebt,
                 hasDebt: realDebt > 0,
@@ -391,7 +413,6 @@
             };
         }
         
-        // אין חוב אמיתי -> מראים ירוק
         if(realDebt <= 0) {
             return {
                 totalDebt: 0,
@@ -402,8 +423,6 @@
             };
         }
         
-        // יש חוב אמיתי:
-        // אם זה אחד מ-3 החייבים הגדולים -> מראים סכום מוסווה (50-100) בירוק
         if(isInTopDebtors) {
             const maskedAmount = getMaskedDebtAmount();
             return {
@@ -415,7 +434,6 @@
             };
         }
         
-        // שאר החייבים (לא בטופ 3) -> מראים "מאוזן" ירוק
         return {
             totalDebt: 0,
             hasDebt: false,
@@ -425,7 +443,7 @@
         };
     }
     
-    // ========== WHATSAPP ==========
+    // ========== WhatsApp ==========
     function getResidentPhone(name) {
         let r = residents.find(r => r.name === name);
         return r ? r.phone : null;
@@ -441,7 +459,7 @@
         return true;
     }
     
-    // ========== DOWNLOAD REPORT ==========
+    // ========== הורדת דוח ==========
     function downloadPaymentReport() {
         if(!currentUser) {
             alert("רק תושבים מחוברים יכולים להוריד דוח.");
@@ -493,13 +511,13 @@
         alert(`✅ הדוח הורד בהצלחה!\nסה"כ שולם: ${totalAll.toFixed(2)} ₪`);
     }
     
-    // ========== SPECIAL DEBTS ==========
+    // ========== ניהול חובות מיוחדים ==========
     function distributeExpense(expense) {
         if(expense.amount <= 500) return;
         if(residents.length === 0) return;
         const share = expense.amount / residents.length;
         const newDebt = {
-            id: 'sd_'+Date.now()+'_'+Math.random(),
+            id: 'sd_' + Date.now() + '_' + Math.random(),
             expenseId: expense.id,
             expenseDesc: expense.desc,
             totalAmount: expense.amount,
@@ -523,24 +541,26 @@
                 if(remaining <= 0) break;
             }
         }
+        const paidAmount = amount - remaining;
         payments.push({
-            id: 'p_'+Date.now()+'_'+Math.random(),
+            id: 'p_' + Date.now() + '_' + Math.random(),
             payer: residentName,
             month: month,
-            amount: amount,
+            amount: paidAmount,
             type: 'special'
         });
         saveAllData();
-        return amount - remaining;
+        return paidAmount;
     }
     
-    // ========== CRUD ==========
+    // ========== טעינה ושמירה ==========
     async function loadAllData() {
-        updateSyncStatus('☁️ טוען...');
+        updateSyncStatus('☁️ טוען נתונים...', false);
         try {
-            let snap = await database.ref('/').once('value');
-            let data = snap.val();
-            if(data) {
+            const snapshot = await database.ref('/').once('value');
+            const data = snapshot.val();
+            
+            if(data && Object.keys(data).length > 0) {
                 payments = (data.payments || []).filter(p => isAfterStart(p.month));
                 expenses = (data.expenses || []).filter(e => isAfterStart(e.month));
                 forum = data.forum || [];
@@ -549,6 +569,7 @@
                 monthlyDue = data.monthlyDue || 70;
                 specialDebts = data.specialDebts || [];
             }
+            
             if(residents.length === 0) {
                 residents = [
                     { id: 'r1', name: 'רונית כהן (דירה 4)', phone: '972501234567' },
@@ -557,18 +578,29 @@
                 ];
                 await database.ref('/residents').set(residents);
             }
+            
             if(forum.length === 0) {
                 forum = [{ id: 'f1', author: 'מערכת', text: 'ברוכים הבאים! 🎉', timestamp: new Date().toISOString() }];
                 await database.ref('/forum').set(forum);
             }
-            updateSyncStatus('✅ מסונכרן');
-        } catch(e) { console.error(e); updateSyncStatus('❌ שגיאה', true); }
+            
+            updateSyncStatus('✅ מסונכרן עם הענן', false);
+        } catch(e) {
+            console.error('Error loading data:', e);
+            updateSyncStatus('❌ שגיאת התחברות', true);
+        }
         renderAll();
     }
     
     async function saveToFirebase(path, data) {
-        try { await database.ref(path).set(data); updateSyncStatus('☁️ נשמר'); }
-        catch(e) { console.error(e); }
+        try {
+            await database.ref(path).set(data);
+            updateSyncStatus('☁️ נשמר...', false);
+            setTimeout(() => updateSyncStatus('✅ מסונכרן', false), 1500);
+        } catch(e) {
+            console.error('Error saving:', e);
+            updateSyncStatus('❌ שגיאה בשמירה', true);
+        }
     }
     
     function saveAllData() {
@@ -581,61 +613,129 @@
         saveToFirebase('/specialDebts', specialDebts);
     }
     
+    // ========== הוספת הוצאה עם העלאה לענן ==========
     async function addExpense() {
-        if(!isAdmin) return;
-        let desc = document.getElementById('expenseDesc').value.trim();
-        let amt = parseFloat(document.getElementById('expenseAmount').value);
-        let month = document.getElementById('expenseMonth').value;
-        if(!desc || isNaN(amt) || amt<=0) { alert("תיאור וסכום תקין"); return; }
+        if(!isAdmin) {
+            alert("רק ועד בית יכול להוסיף הוצאות");
+            return;
+        }
         
-        let btn = document.getElementById('addExpenseBtn');
-        let statusDiv = document.getElementById('uploadStatusMsg');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        const desc = document.getElementById('expenseDesc').value.trim();
+        const amt = parseFloat(document.getElementById('expenseAmount').value);
+        const month = document.getElementById('expenseMonth').value;
+        
+        if(!desc || isNaN(amt) || amt <= 0) {
+            alert("יש להזין תיאור וסכום תקין");
+            return;
+        }
+        
+        const btn = document.getElementById('addExpenseBtn');
+        const statusDiv = document.getElementById('uploadStatusMsg');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> מעלה...';
         btn.disabled = true;
         
         try {
-            let cloudUrl = '', fileName = '';
+            let cloudUrl = '';
+            let uploadedFileName = '';
+            
             if(selectedFile) {
-                statusDiv.innerHTML = 'מעלה לענן...';
-                let base64 = await new Promise(r => { let fr = new FileReader(); fr.onload = () => r(fr.result.split(',')[1]); fr.readAsDataURL(selectedFile); });
-                let fd = new FormData();
-                fd.append('key', IMGBB_API_KEY);
-                fd.append('image', base64);
-                let res = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: fd });
-                let data = await res.json();
-                if(data.success) { cloudUrl = data.data.url; fileName = selectedFile.name; }
+                statusDiv.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> מעלה לענן...';
+                
+                const base64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.readAsDataURL(selectedFile);
+                });
+                
+                const formData = new FormData();
+                formData.append('key', IMGBB_API_KEY);
+                formData.append('image', base64);
+                formData.append('name', selectedFile.name);
+                
+                const response = await fetch('https://api.imgbb.com/1/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if(data.success) {
+                    cloudUrl = data.data.url;
+                    uploadedFileName = selectedFile.name;
+                    statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> הקבלה הועלתה!';
+                    setTimeout(() => { statusDiv.innerHTML = ''; }, 2000);
+                } else {
+                    throw new Error(data.error?.message || 'שגיאת העלאה');
+                }
             }
-            let newExp = { id: 'e'+Date.now(), desc, amount: amt, month, cloudUrl, fileName };
-            expenses.push(newExp);
-            if(amt > 500) distributeExpense(newExp);
+            
+            const newExpense = {
+                id: 'e' + Date.now(),
+                desc: desc,
+                amount: amt,
+                month: month,
+                cloudUrl: cloudUrl,
+                fileName: uploadedFileName
+            };
+            
+            expenses.push(newExpense);
+            
+            if(amt > 500 && residents.length > 0) {
+                distributeExpense(newExpense);
+                statusDiv.innerHTML = '<i class="fas fa-chart-pie"></i> ההוצאה חולקה בין הדיירים';
+                setTimeout(() => { statusDiv.innerHTML = ''; }, 2000);
+            }
+            
             saveAllData();
+            
             document.getElementById('expenseDesc').value = '';
             document.getElementById('expenseAmount').value = '';
             selectedFile = null;
             document.getElementById('fileNameDisplay').innerText = 'לא נבחר קובץ';
-            statusDiv.innerHTML = '✅ נוסף';
-            setTimeout(() => statusDiv.innerHTML = '', 2000);
-        } catch(e) { statusDiv.innerHTML = '❌ שגיאה'; }
-        finally { btn.innerHTML = '<i class="fas fa-plus"></i> הוסף הוצאה'; btn.disabled = false; }
+            if(document.getElementById('expenseFile')) document.getElementById('expenseFile').value = '';
+            
+        } catch(err) {
+            statusDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> שגיאה: ${err.message}`;
+            console.error(err);
+        } finally {
+            btn.innerHTML = '<i class="fas fa-plus"></i> הוסף הוצאה';
+            btn.disabled = false;
+        }
     }
     
     function addPayment() {
-        if(!isAdmin) return;
-        let type = document.getElementById('paymentType').value;
-        let name = document.getElementById('payerName').value.trim();
+        if(!isAdmin) {
+            alert("רק ועד בית יכול להוסיף תקבולים");
+            return;
+        }
+        
+        const type = document.getElementById('paymentType').value;
+        const name = document.getElementById('payerName').value.trim();
         let amt = parseFloat(document.getElementById('paymentAmount').value);
-        let month = document.getElementById('paymentMonth').value;
-        if(!name || isNaN(amt) || amt<=0) { alert("שם וסכום תקין"); return; }
+        const month = document.getElementById('paymentMonth').value;
+        
+        if(!name || isNaN(amt) || amt <= 0) {
+            alert("יש להזין שם וסכום תקין");
+            return;
+        }
         
         if(type === 'special') {
-            let paid = addSpecialPayment(name, amt, month);
-            if(paid > 0) sendWhatsApp(name, paid, month, true);
-            alert(`₪${paid.toFixed(2)} שולמו עבור חוב חריג`);
+            const paid = addSpecialPayment(name, amt, month);
+            if(paid > 0) {
+                sendWhatsApp(name, paid, month, true);
+                alert(`₪${paid.toFixed(2)} שולמו עבור חוב חריג`);
+            }
         } else {
-            payments.push({ id: 'p'+Date.now(), payer: name, month, amount: amt, type: 'regular' });
+            payments.push({
+                id: 'p' + Date.now(),
+                payer: name,
+                month: month,
+                amount: amt,
+                type: 'regular'
+            });
             saveAllData();
             sendWhatsApp(name, amt, month, false);
         }
+        
         document.getElementById('payerName').value = '';
         document.getElementById('paymentAmount').value = '';
         renderAll();
@@ -643,52 +743,88 @@
     
     function addResident() {
         if(!isAdmin) return;
+        
         let name = document.getElementById('newResidentName').value.trim();
         let phone = cleanPhone(document.getElementById('newResidentPhone').value.trim());
-        if(!name || !phone) { alert("שם וטלפון"); return; }
-        if(!residents.find(r => r.name === name)) residents.push({ id: 'r'+Date.now(), name, phone });
-        saveAllData();
+        
+        if(!name || !phone) {
+            alert("יש להזין שם וטלפון");
+            return;
+        }
+        
+        if(!residents.find(r => r.name === name)) {
+            residents.push({ id: 'r' + Date.now(), name: name, phone: phone });
+            saveAllData();
+        }
+        
+        document.getElementById('newResidentName').value = '';
+        document.getElementById('newResidentPhone').value = '';
         updateResidentsUI();
         renderAll();
     }
     
     function addForumMessage() {
-        if(!currentUser && !isAdmin) { alert("רק תושבים יכולים לכתוב"); return; }
-        let author = document.getElementById('forumName').value.trim() || (currentUser?.name || 'אורח');
-        let text = document.getElementById('forumMsg').value.trim();
+        if(!currentUser && !isAdmin) {
+            alert("רק תושבים יכולים לכתוב בפורום");
+            return;
+        }
+        
+        const author = document.getElementById('forumName').value.trim() || (currentUser?.name || 'אורח');
+        const text = document.getElementById('forumMsg').value.trim();
+        
         if(!text) return;
-        forum.push({ id: 'f'+Date.now(), author, text, timestamp: new Date().toISOString() });
+        
+        forum.push({
+            id: 'f' + Date.now(),
+            author: author,
+            text: text,
+            timestamp: new Date().toISOString()
+        });
         saveAllData();
+        
         document.getElementById('forumName').value = '';
         document.getElementById('forumMsg').value = '';
         renderAll();
     }
     
     function addSuggestion() {
-        if(!currentUser && !isAdmin) { alert("רק תושבים יכולים להציע"); return; }
-        let author = document.getElementById('suggAuthor').value.trim() || (currentUser?.name || 'אורח');
-        let title = document.getElementById('suggTitle').value.trim();
+        if(!currentUser && !isAdmin) {
+            alert("רק תושבים יכולים להציע הצעות");
+            return;
+        }
+        
+        const author = document.getElementById('suggAuthor').value.trim() || (currentUser?.name || 'אורח');
+        const title = document.getElementById('suggTitle').value.trim();
+        
         if(!title) return;
-        suggestions.push({ id: 's'+Date.now(), author, title, up: 0, down: 0 });
+        
+        suggestions.push({
+            id: 's' + Date.now(),
+            author: author,
+            title: title,
+            up: 0,
+            down: 0
+        });
         saveAllData();
+        
         document.getElementById('suggAuthor').value = '';
         document.getElementById('suggTitle').value = '';
         renderAll();
     }
     
-    // ========== UI ==========
-    function updateSyncStatus(text) {
-        let el = document.getElementById('syncStatus');
-        if(el) el.innerHTML = text;
-    }
-    
+    // ========== ממשק משתמש ==========
     function updateResidentsUI() {
-        let container = document.getElementById('residentsList');
+        const container = document.getElementById('residentsList');
         if(!container || !isAdmin) return;
-        if(residents.length === 0) { container.innerHTML = '<div>אין דיירים</div>'; return; }
+        
+        if(residents.length === 0) {
+            container.innerHTML = '<div>אין דיירים רשומים</div>';
+            return;
+        }
+        
         container.innerHTML = residents.map(r => `
             <div class="resident-item">
-                <span>${escapeHtml(r.name)}</span>
+                <span class="resident-name">${escapeHtml(r.name)}</span>
                 <span>📱 ${r.phone}</span>
                 <div>
                     <button class="small-btn" onclick="editResidentPhone('${r.id}')" style="background:#f0a55a;"><i class="fas fa-edit"></i></button>
@@ -696,17 +832,21 @@
                 </div>
             </div>
         `).join('');
-        let datalist = document.getElementById('residentsDatalist');
-        if(datalist) datalist.innerHTML = residents.map(r => `<option value="${escapeHtml(r.name)}">`).join('');
+        
+        const datalist = document.getElementById('residentsDatalist');
+        if(datalist) {
+            datalist.innerHTML = residents.map(r => `<option value="${escapeHtml(r.name)}">`).join('');
+        }
     }
     
     function renderPaymentsTable() {
         if(!residents.length) return;
-        let monthsList = getMonthsList();
-        let tbody = document.getElementById('paymentsBody');
+        
+        const monthsList = getMonthsList();
+        const tbody = document.getElementById('paymentsBody');
         if(!tbody) return;
         
-        let topDebtors = getTopDebtors(monthsList);
+        const topDebtors = getTopDebtors(monthsList);
         
         let rows = '';
         for(let resident of residents) {
@@ -716,83 +856,121 @@
             const totalRequired = monthsList.length * monthlyDue;
             const specialDebtReal = calculateSpecialDebtReal(resident.name);
             
-            const isInTopDebtors = topDebtors.some(d => d.name === resident.name);
             const showMaskIcon = (!isCurrent && !showRealData && !isAdmin && displayDebt.isMasked);
+            const showRealBadge = (showRealData && isAdmin);
             
             rows += `<tr>
-                <td>${escapeHtml(resident.name)} ${showMaskIcon ? '<span class="mask-badge">🔒</span>' : ''}${(showRealData && isAdmin) ? '<span class="real-mode-badge">📊 אמת</span>' : ''}${(isCurrent && getRealTotalDebt(resident.name, monthsList) > 0) ? '<span class="mask-badge" style="background:#c9693e;color:white;">⚠️ חוב</span>' : ''}</td>
+                <td>${escapeHtml(resident.name)} ${showMaskIcon ? '<span class="mask-badge">🔒</span>' : ''}${showRealBadge ? '<span class="real-mode-badge">📊 אמת</span>' : ''}${(isCurrent && getRealTotalDebt(resident.name, monthsList) > 0) ? '<span class="mask-badge" style="background:#c9693e;color:white;">⚠️ חוב</span>' : ''}</td>
                 <td>${monthsList.length}</td>
                 <td>${totalRequired.toFixed(2)} ₪</td>
                 <td class="${displayDebt.hasDebt && !isCurrent ? 'paid-green' : ''}">${totalRegularPayments.toFixed(2)} ₪</td>
                 <td><span class="${displayDebt.displayClass}">${displayDebt.displayText}</span></td>
-                <td><span class="${displayDebt.displayClass}">${specialDebtReal > 0 && (isCurrent || (showRealData && isAdmin)) ? specialDebtReal.toFixed(2) + ' ₪' : '0 ₪'}</span></td>
+                <td><span class="${displayDebt.displayClass}">${(specialDebtReal > 0 && (isCurrent || showRealData)) ? specialDebtReal.toFixed(2) + ' ₪' : (specialDebtReal > 0 ? '0 ₪' : '0 ₪')}</span></td>
                 <td><span class="${displayDebt.displayClass}">${displayDebt.totalDebt.toFixed(2)} ₪</span></td>
                 <td>${isAdmin ? `<i class="fas fa-edit edit-icon" onclick="editResident('${resident.id}')"></i>` : ''}</td>
             </tr>`;
         }
+        
         tbody.innerHTML = rows || '<tr><td colspan="8">אין מידע</td></tr>';
         
-        // הערת הסבר על מיסוך
         let existingNote = document.getElementById('maskingNote');
         if(!showRealData && !isAdmin && currentUser && topDebtors.length > 0) {
             if(!existingNote) {
-                let note = document.createElement('div');
+                const note = document.createElement('div');
                 note.id = 'maskingNote';
                 note.style.cssText = 'font-size:0.7rem; color:#666; margin-top:10px; padding:8px; background:#f0f0f0; border-radius:12px; text-align:center;';
-                note.innerHTML = '🔒 *הנתונים המוצגים הם חלקיים. רק הנתונים האישיים שלך מדויקים. הורדת הדוח מציגה את מלוא הפרטים שלך.*';
+                note.innerHTML = '🔒 *הנתונים המוצגים הם חלקיים לצורכי פרטיות. רק הנתונים האישיים שלך מדויקים. הורדת הדוח מציגה את מלוא הפרטים שלך.*';
                 tbody.parentElement.parentElement.appendChild(note);
             }
-        } else if(existingNote) {
+        } else if(existingNote && !showRealData) {
+            existingNote.remove();
+        } else if(existingNote && showRealData) {
             existingNote.remove();
         }
     }
     
     function renderExpensesTable() {
-        let filtered = currentMonth ? expenses.filter(e => e.month === currentMonth) : expenses;
-        let tbody = document.getElementById('expensesBody');
+        const filtered = currentMonth ? expenses.filter(e => e.month === currentMonth) : expenses;
+        const tbody = document.getElementById('expensesBody');
         if(!tbody) return;
-        let rows = filtered.map(e => {
-            let isSpecial = e.amount > 500;
-            return `<tr>
+        
+        const rows = filtered.map(e => {
+            const isSpecial = e.amount > 500;
+            return `<td>
                 <td>${escapeHtml(e.desc)} ${isSpecial ? '<span style="background:#c9693c;color:white;border-radius:20px;padding:2px 8px;font-size:0.7rem;">חולק</span>' : ''}</td>
                 <td>${e.month}</td>
                 <td class="amount-expense">${e.amount.toFixed(2)} ₪</td>
                 <td>${isSpecial ? `${residents.length} דיירים - ${(e.amount/residents.length).toFixed(2)} ₪ לדייר` : 'רגיל'}</td>
-                <td>${e.cloudUrl ? `<i class="fas fa-cloud-upload-alt" style="cursor:pointer;color:#4285f4;" onclick="window.open('${e.cloudUrl}')"></i>` : '❌'}</td>
+                <td>${e.cloudUrl ? `<i class="fas fa-cloud-upload-alt" style="cursor:pointer;color:#4285f4;" onclick="window.open('${e.cloudUrl}','_blank')"></i>` : '❌'}</td>
                 <td>${isAdmin ? `<i class="fas fa-trash-alt delete-icon" onclick="deleteExpense('${e.id}')"></i>` : ''}</td>
             </tr>`;
         }).join('');
+        
         tbody.innerHTML = rows || '<tr><td colspan="6">אין הוצאות</td></tr>';
-        let totalExp = filtered.reduce((s,e)=>s+e.amount,0);
+        
+        const totalExp = filtered.reduce((s,e) => s + e.amount, 0);
         document.getElementById('totalExpenses').innerText = totalExp.toFixed(2);
-        let totalPaymentsSum = payments.filter(p => p.type === 'regular').reduce((s,p)=>s+p.amount,0);
+        
+        const totalPaymentsSum = payments.filter(p => p.type === 'regular').reduce((s,p) => s + p.amount, 0);
         document.getElementById('balance').innerText = (totalPaymentsSum - totalExp).toFixed(2);
     }
     
     function renderForum() {
-        let container = document.getElementById('forumContainer');
-        if(container) container.innerHTML = forum.slice().reverse().map(f => `<div class="forum-message"><strong>${escapeHtml(f.author)}</strong> <small>${new Date(f.timestamp).toLocaleDateString()}</small><div>${escapeHtml(f.text)}</div></div>`).join('');
+        const container = document.getElementById('forumContainer');
+        if(container) {
+            container.innerHTML = forum.slice().reverse().map(f => `
+                <div class="forum-message">
+                    <strong>${escapeHtml(f.author)}</strong> 
+                    <small>${new Date(f.timestamp).toLocaleDateString('he-IL')}</small>
+                    <div>${escapeHtml(f.text)}</div>
+                </div>
+            `).join('');
+        }
     }
     
     function renderSuggestions() {
-        let container = document.getElementById('suggestionsContainer');
+        const container = document.getElementById('suggestionsContainer');
         if(!container) return;
-        container.innerHTML = suggestions.map(s => `<div class="forum-message"><div><strong>${escapeHtml(s.author)}</strong> מציע: ${escapeHtml(s.title)} ${isAdmin ? `<i class="fas fa-edit edit-icon" onclick="editSuggestion('${s.id}')"></i> <i class="fas fa-trash-alt delete-icon" onclick="deleteSuggestion('${s.id}')"></i>` : ''}</div><div><button class="vote-up" data-id="${s.id}">👍 ${s.up}</button> <button class="vote-down" data-id="${s.id}">👎 ${s.down}</button></div></div>`).join('');
-        document.querySelectorAll('.vote-up').forEach(btn => btn.onclick = () => { let s = suggestions.find(s=>s.id===btn.dataset.id); if(s){ s.up++; saveAllData(); renderSuggestions(); } });
-        document.querySelectorAll('.vote-down').forEach(btn => btn.onclick = () => { let s = suggestions.find(s=>s.id===btn.dataset.id); if(s){ s.down++; saveAllData(); renderSuggestions(); } });
+        
+        container.innerHTML = suggestions.map(s => `
+            <div class="forum-message">
+                <div>
+                    <strong>${escapeHtml(s.author)}</strong> מציע: ${escapeHtml(s.title)} 
+                    ${isAdmin ? `<i class="fas fa-edit edit-icon" onclick="editSuggestion('${s.id}')"></i> <i class="fas fa-trash-alt delete-icon" onclick="deleteSuggestion('${s.id}')"></i>` : ''}
+                </div>
+                <div>
+                    <button class="vote-up" data-id="${s.id}">👍 ${s.up}</button> 
+                    <button class="vote-down" data-id="${s.id}">👎 ${s.down}</button>
+                </div>
+            </div>
+        `).join('');
+        
+        document.querySelectorAll('.vote-up').forEach(btn => {
+            btn.onclick = () => {
+                const s = suggestions.find(s => s.id === btn.dataset.id);
+                if(s) { s.up++; saveAllData(); renderSuggestions(); }
+            };
+        });
+        
+        document.querySelectorAll('.vote-down').forEach(btn => {
+            btn.onclick = () => {
+                const s = suggestions.find(s => s.id === btn.dataset.id);
+                if(s) { s.down++; saveAllData(); renderSuggestions(); }
+            };
+        });
     }
     
     function renderAll() {
-        let isLogged = (currentUser !== null);
-        let restricted = document.getElementById('restrictedContent');
-        let guestMsg = document.getElementById('guestMessage');
-        let adminPanel = document.getElementById('adminResidentsPanel');
-        let paymentsEdit = document.getElementById('paymentsEditArea');
-        let expensesEdit = document.getElementById('expensesEditArea');
-        let addExpenseBtn = document.getElementById('addExpenseBtn');
-        let editDueWrapper = document.getElementById('editDueWrapper');
-        let residentButtons = document.getElementById('residentButtons');
-        let toggleRealBtn = document.getElementById('toggleRealBtn');
+        const isLogged = (currentUser !== null);
+        const restricted = document.getElementById('restrictedContent');
+        const guestMsg = document.getElementById('guestMessage');
+        const adminPanel = document.getElementById('adminResidentsPanel');
+        const paymentsEdit = document.getElementById('paymentsEditArea');
+        const expensesEdit = document.getElementById('expensesEditArea');
+        const addExpenseBtn = document.getElementById('addExpenseBtn');
+        const editDueWrapper = document.getElementById('editDueWrapper');
+        const residentButtons = document.getElementById('residentButtons');
+        const toggleRealBtn = document.getElementById('toggleRealBtn');
         
         if(restricted) restricted.style.display = isLogged ? 'block' : 'none';
         if(guestMsg) guestMsg.style.display = isLogged ? 'none' : 'block';
@@ -810,22 +988,23 @@
         
         document.getElementById('monthlyDueDisplay').innerText = monthlyDue;
         updateResidentsUI();
+        
         if(isLogged) {
             renderPaymentsTable();
             renderExpensesTable();
             renderForum();
             renderSuggestions();
         } else {
-            let paymentsBody = document.getElementById('paymentsBody');
+            const paymentsBody = document.getElementById('paymentsBody');
             if(paymentsBody) paymentsBody.innerHTML = '<tr><td colspan="8">🔒 נדרשת הזדהות תושב</td></tr>';
-            let expensesBody = document.getElementById('expensesBody');
+            const expensesBody = document.getElementById('expensesBody');
             if(expensesBody) expensesBody.innerHTML = '<tr><td colspan="6">🔒 נדרשת הזדהות תושב</td></tr>';
         }
     }
     
-    // ========== AUTH ==========
+    // ========== אימות משתמש ==========
     function showAgreementModal(phone, apt, residentName, callback) {
-        let modal = document.createElement('div');
+        const modal = document.createElement('div');
         modal.className = 'modal-overlay';
         modal.innerHTML = `
             <div class="modal-agreement">
@@ -848,27 +1027,28 @@
             </div>
         `;
         document.body.appendChild(modal);
-        let check = modal.querySelector('#agreeCheck');
-        let accept = modal.querySelector('#acceptBtn');
-        check.onchange = () => accept.disabled = !check.checked;
+        
+        const check = modal.querySelector('#agreeCheck');
+        const accept = modal.querySelector('#acceptBtn');
+        check.onchange = () => { accept.disabled = !check.checked; };
         accept.onclick = () => { modal.remove(); callback(true); };
         modal.querySelector('#declineBtn').onclick = () => { modal.remove(); callback(false); };
     }
     
     function checkAuth(phone, apt) {
-        let clean = phone.replace(/\D/g,'');
+        const clean = phone.replace(/\D/g,'');
         return residents.find(r => {
-            let rPhone = (r.phone || '').replace(/\D/g,'');
+            const rPhone = (r.phone || '').replace(/\D/g,'');
             return rPhone === clean && (r.name.includes(apt) || apt.includes(r.name));
         });
     }
     
     function updateAuthUI() {
-        let authPhone = document.getElementById('authPhone');
-        let authApt = document.getElementById('authApartment');
-        let authBtn = document.getElementById('authCheckBtn');
-        let statusDiv = document.getElementById('authStatus');
-        let badge = document.getElementById('userBadgeArea');
+        const authPhone = document.getElementById('authPhone');
+        const authApt = document.getElementById('authApartment');
+        const authBtn = document.getElementById('authCheckBtn');
+        const statusDiv = document.getElementById('authStatus');
+        const badge = document.getElementById('userBadgeArea');
         
         if(currentUser) {
             authPhone.disabled = true;
@@ -888,13 +1068,19 @@
         renderAll();
     }
     
-    // ========== EVENT LISTENERS ==========
+    // ========== אירועים ==========
     document.getElementById('authCheckBtn').onclick = () => {
-        let phone = document.getElementById('authPhone').value.trim();
-        let apt = document.getElementById('authApartment').value.trim();
-        if(!phone || !apt) { alert("יש להזין טלפון ודירה"); return; }
-        let resident = checkAuth(phone, apt);
-        if(!resident) { alert("פרטים לא נמצאו. פנה לוועד הבית."); return; }
+        const phone = document.getElementById('authPhone').value.trim();
+        const apt = document.getElementById('authApartment').value.trim();
+        if(!phone || !apt) {
+            alert("יש להזין טלפון ודירה");
+            return;
+        }
+        const resident = checkAuth(phone, apt);
+        if(!resident) {
+            alert("פרטים לא נמצאו. פנה לוועד הבית.");
+            return;
+        }
         showAgreementModal(phone, apt, resident.name, (agree) => {
             if(agree) {
                 currentUser = { phone, apartment: apt, name: resident.name };
@@ -905,24 +1091,25 @@
         });
     };
     
-    document.getElementById('authLogoutBtn').onclick = () => { 
-        currentUser = null; 
-        localStorage.removeItem('currentUser'); 
-        updateAuthUI(); 
+    document.getElementById('authLogoutBtn').onclick = () => {
+        currentUser = null;
+        localStorage.removeItem('currentUser');
+        updateAuthUI();
         alert("התנתקת בהצלחה.");
     };
     
     document.getElementById('downloadReportBtn').onclick = downloadPaymentReport;
     
     document.getElementById('adminBtn').onclick = () => {
-        let pwd = prompt("קוד גישה לוועד בית:");
-        if(pwd === "bafy2020") { 
-            isAdmin = true; 
+        const pwd = prompt("קוד גישה לוועד בית:");
+        if(pwd === "bafy2020") {
+            isAdmin = true;
             showRealData = false;
-            renderAll(); 
+            renderAll();
             alert("ברוך הבא! כעת אתה במצב ועד בית.");
+        } else {
+            alert("קוד שגוי!");
         }
-        else alert("קוד שגוי!");
     };
     
     document.getElementById('toggleRealBtn').onclick = () => {
@@ -938,35 +1125,109 @@
     document.getElementById('addResidentBtn').onclick = addResident;
     document.getElementById('postMsgBtn').onclick = addForumMessage;
     document.getElementById('addSuggBtn').onclick = addSuggestion;
-    document.getElementById('editDueBtn').onclick = () => { let n = prompt("סכום חודשי חדש:", monthlyDue); if(n && !isNaN(parseFloat(n))) { monthlyDue = parseFloat(n); saveAllData(); renderAll(); } };
+    document.getElementById('editDueBtn').onclick = () => {
+        const n = prompt("סכום חודשי קבוע חדש:", monthlyDue);
+        if(n && !isNaN(parseFloat(n))) {
+            monthlyDue = parseFloat(n);
+            saveAllData();
+            renderAll();
+        }
+    };
     
     document.getElementById('expenseFile')?.addEventListener('change', (e) => {
-        if(e.target.files && e.target.files[0]) { selectedFile = e.target.files[0]; document.getElementById('fileNameDisplay').innerHTML = `<i class="fas fa-file"></i> ${selectedFile.name.substring(0,30)}`; }
-        else { selectedFile = null; document.getElementById('fileNameDisplay').innerText = 'לא נבחר קובץ'; }
+        if(e.target.files && e.target.files[0]) {
+            selectedFile = e.target.files[0];
+            document.getElementById('fileNameDisplay').innerHTML = `<i class="fas fa-file"></i> ${selectedFile.name.substring(0,30)}`;
+        } else {
+            selectedFile = null;
+            document.getElementById('fileNameDisplay').innerText = 'לא נבחר קובץ';
+        }
     });
     
-    window.deleteExpense = (id) => { if(isAdmin) { expenses = expenses.filter(e => e.id !== id); specialDebts = specialDebts.filter(d => d.expenseId !== id); saveAllData(); renderAll(); } };
-    window.deleteResident = (id) => { if(isAdmin && confirm("למחוק?")) { residents = residents.filter(r => r.id !== id); saveAllData(); renderAll(); } };
-    window.editResident = (id) => { if(isAdmin) { let n = prompt("שם חדש:"); if(n) { let r = residents.find(r=>r.id===id); if(r) r.name = n; saveAllData(); renderAll(); } } };
-    window.editResidentPhone = (id) => { if(isAdmin) { let p = prompt("טלפון חדש:"); if(p) { let r = residents.find(r=>r.id===id); if(r) r.phone = cleanPhone(p); saveAllData(); renderAll(); } } };
-    window.deleteSuggestion = (id) => { if(isAdmin) { suggestions = suggestions.filter(s => s.id !== id); saveAllData(); renderSuggestions(); } };
-    window.editSuggestion = (id) => { if(isAdmin) { let n = prompt("ערוך הצעה:"); if(n) { let s = suggestions.find(s=>s.id===id); if(s) s.title = n; saveAllData(); renderSuggestions(); } } };
+    // פונקציות גלובליות ל-UI
+    window.deleteExpense = (id) => {
+        if(isAdmin) {
+            expenses = expenses.filter(e => e.id !== id);
+            specialDebts = specialDebts.filter(d => d.expenseId !== id);
+            saveAllData();
+            renderAll();
+        }
+    };
     
+    window.deleteResident = (id) => {
+        if(isAdmin && confirm("למחוק דייר זה?")) {
+            residents = residents.filter(r => r.id !== id);
+            saveAllData();
+            renderAll();
+        }
+    };
+    
+    window.editResident = (id) => {
+        if(isAdmin) {
+            const n = prompt("שם חדש:");
+            if(n) {
+                const r = residents.find(r => r.id === id);
+                if(r) r.name = n;
+                saveAllData();
+                renderAll();
+            }
+        }
+    };
+    
+    window.editResidentPhone = (id) => {
+        if(isAdmin) {
+            const p = prompt("טלפון חדש:");
+            if(p) {
+                const r = residents.find(r => r.id === id);
+                if(r) r.phone = cleanPhone(p);
+                saveAllData();
+                renderAll();
+            }
+        }
+    };
+    
+    window.deleteSuggestion = (id) => {
+        if(isAdmin) {
+            suggestions = suggestions.filter(s => s.id !== id);
+            saveAllData();
+            renderSuggestions();
+        }
+    };
+    
+    window.editSuggestion = (id) => {
+        if(isAdmin) {
+            const n = prompt("ערוך הצעה:");
+            if(n) {
+                const s = suggestions.find(s => s.id === id);
+                if(s) s.title = n;
+                saveAllData();
+                renderSuggestions();
+            }
+        }
+    };
+    
+    // בחירת חודש ושנה
     function initMonthSelector() {
-        let container = document.getElementById('monthSelector');
+        const container = document.getElementById('monthSelector');
         if(!container) return;
-        container.innerHTML = `<button class="month-btn ${!currentMonth?'active':''}" onclick="setMonthFilter(null)">הכל</button>`;
-        for(let m of allMonths) {
-            let val = `${currentYear}-${m.value}`;
-            container.innerHTML += `<button class="month-btn ${currentMonth===val?'active':''}" onclick="setMonthFilter('${val}')">${m.name} ${currentYear}</button>`;
+        
+        container.innerHTML = `<button class="month-btn ${!currentMonth ? 'active' : ''}" onclick="setMonthFilter(null)">הכל</button>`;
+        for(const m of allMonths) {
+            const val = `${currentYear}-${m.value}`;
+            container.innerHTML += `<button class="month-btn ${currentMonth === val ? 'active' : ''}" onclick="setMonthFilter('${val}')">${m.name} ${currentYear}</button>`;
         }
     }
-    window.setMonthFilter = (val) => { currentMonth = val; initMonthSelector(); renderAll(); };
+    
+    window.setMonthFilter = (val) => {
+        currentMonth = val;
+        initMonthSelector();
+        renderAll();
+    };
     
     function initYearSelector() {
         document.querySelectorAll('.year-btn').forEach(btn => {
             btn.onclick = () => {
-                document.querySelectorAll('.year-btn').forEach(b=>b.classList.remove('active'));
+                document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 currentYear = parseInt(btn.dataset.year);
                 currentMonth = null;
@@ -977,9 +1238,15 @@
         });
     }
     
-    let savedUser = localStorage.getItem('currentUser');
-    if(savedUser) { try { currentUser = JSON.parse(savedUser); } catch(e) {} }
+    // שחזור session
+    const savedUser = localStorage.getItem('currentUser');
+    if(savedUser) {
+        try {
+            currentUser = JSON.parse(savedUser);
+        } catch(e) {}
+    }
     
+    // הפעלה
     loadAllData().then(() => {
         initMonthSelector();
         initYearSelector();
