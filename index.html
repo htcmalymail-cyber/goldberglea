@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
@@ -32,7 +31,6 @@
         .header { text-align: center; }
         .header h1 { font-size: 2rem; background: linear-gradient(135deg, #1f6e43, #2a7f6e); -webkit-background-clip: text; background-clip: text; color: transparent; }
         
-        /* כפתור אדמין */
         .admin-btn {
             position: fixed; bottom: 20px; right: 20px;
             background: #48b5a3; color: white;
@@ -43,7 +41,6 @@
         }
         .admin-btn:hover { background: #2c7a6e; transform: scale(1.02); }
         
-        /* כפתור הצגת נתונים אמיתיים (לאדמין) */
         .toggle-real-btn {
             position: fixed; bottom: 20px; left: 20px;
             background: #f0a55a; color: white;
@@ -54,7 +51,6 @@
         }
         .toggle-real-btn:hover { background: #e08e3a; }
         
-        /* מodal הסכמה */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
@@ -76,10 +72,9 @@
         .btn-decline { background: rgba(255,255,255,0.3); color: white; }
         .btn-accept:disabled { opacity: 0.5; }
         
-        /* Auth */
         .auth-card { border: 2px solid #48b5a3; }
         .auth-input-group { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-        .auth-input-group input { flex: 1; padding: 12px 18px; border-radius: 60px; border: 1px solid #cce2da; }
+        .auth-input-group input { flex: 1; padding: 12px 18px; border-radius: 60px; border: 1px solid #cce2da; font-size: 1rem; }
         .auth-status { margin-top: 12px; padding: 10px; border-radius: 30px; font-size: 0.85rem; }
         .auth-status.success { background: #d4edda; color: #155724; }
         .auth-status.error { background: #f8d7da; color: #721c24; }
@@ -99,14 +94,14 @@
         .debt-negative { color: #b85c1a; background: #fff0e0; border-radius: 20px; padding: 3px 10px; display: inline-block; }
         .debt-positive { color: #2b6e3c; background: #e0f2e9; border-radius: 20px; padding: 3px 10px; display: inline-block; }
         .paid-green { color: #2b6e3c; background: #e0f2e9; border-radius: 20px; padding: 3px 10px; display: inline-block; font-weight: bold; }
-        button { background: #48b5a3; border: none; padding: 8px 18px; border-radius: 40px; color: white; cursor: pointer; }
+        button { background: #48b5a3; border: none; padding: 8px 18px; border-radius: 40px; color: white; cursor: pointer; font-weight: 600; }
         button:hover { background: #3a9b8a; }
         .delete-icon, .edit-icon, .whatsapp-icon { cursor: pointer; margin: 0 3px; }
         .delete-icon { color: #c9693e; }
         .edit-icon { color: #5f9e8e; }
         .whatsapp-icon { color: #25D366; }
         .month-selector, .year-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
-        .month-btn, .year-btn { background: #f0faf7; color: #1e4b3f; border: 1px solid #cce5dd; }
+        .month-btn, .year-btn { background: #f0faf7; color: #1e4b3f; border: 1px solid #cce5dd; cursor: pointer; }
         .month-btn.active, .year-btn.active { background: #48b5a3; color: white; }
         .forum-message { background: #fefef7; border-radius: 20px; padding: 12px; margin-bottom: 12px; border-right: 4px solid #6dc2b2; }
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
@@ -114,27 +109,11 @@
         .sync-status { position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; z-index: 9999; }
         .resident-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #cce5dd; }
         .small-btn { padding: 4px 8px; font-size: 0.7rem; }
-        
-        .download-report-btn {
-            background: #25D366;
-            margin-right: 10px;
-        }
+        .download-report-btn { background: #25D366; margin-right: 10px; }
         .download-report-btn:hover { background: #128C7E; }
-        
-        .resident-buttons {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .mask-badge {
-            font-size: 0.7rem;
-            background: #ffd966;
-            color: #2c5a4a;
-            border-radius: 20px;
-            padding: 2px 8px;
-            margin-right: 8px;
-        }
+        .resident-buttons { display: flex; gap: 10px; align-items: center; }
+        .mask-badge { font-size: 0.7rem; background: #ffd966; color: #2c5a4a; border-radius: 20px; padding: 2px 8px; margin-right: 8px; }
+        .real-mode-badge { background: #c9693e; color: white; border-radius: 20px; padding: 2px 8px; font-size: 0.7rem; margin-right: 10px; }
         
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .fa-spin { animation: spin 1s linear infinite; }
@@ -144,12 +123,11 @@
 
 <div class="container">
     <div class="header">
-        <div><i class="fas fa-crown"></i> <i class="fas fa-home"></i> <i class="fab fa-whatsapp"></i></div>
+        <div><i class="fas fa-crown" style="font-size:1.5rem;"></i> <i class="fas fa-home" style="font-size:1.5rem;"></i> <i class="fab fa-whatsapp" style="font-size:1.5rem;"></i></div>
         <h1>🏢 גולדברג ליה – ניהול בית משותף</h1>
-        <p>🌿 קבלות ב-ImgBB | שליחת קוויטנציה | ☁️ סינכרון | 📊 הוצאות מעל 500₪ מתחלקות</p>
+        <p>🌿 קבלות ב-ImgBB | שליחת קוויטנציה | ☁️ סינכרון אוטומטי | 📊 הוצאות מעל 500₪ מתחלקות</p>
     </div>
 
-    <!-- בלוק הזדהות -->
     <div class="card auth-card">
         <div class="card-title"><i class="fas fa-key"></i> כניסה לתושבים</div>
         <div class="auth-input-group">
@@ -165,7 +143,6 @@
         <div id="userBadgeArea" style="margin-top: 10px;"></div>
     </div>
 
-    <!-- תוכן מוגבל לדיירים -->
     <div id="restrictedContent" style="display:none;">
         <div class="card">
             <div class="card-title"><i class="fas fa-calendar-alt"></i> בחירת תקופה (מינואר 2026)</div>
@@ -211,10 +188,10 @@
             <div style="overflow-x:auto;">
                 <table style="width:100%">
                     <thead>
-                        <tr><th>דירה/שם</th><th>חודשים</th><th>סה"כ לחיוב</th><th>שולם</th><th>יתרה</th><th>מיוחד</th><th>סה"כ חוב</th><th></th></tr>
+                        <tr><th>דירה/שם</th><th>חודשים</th><th>סה"כ לחיוב</th><th>שולם רגיל</th><th>יתרה רגילה</th><th>מיוחד</th><th>סה"כ חוב</th><th></th></table>
                     </thead>
                     <tbody id="paymentsBody"></tbody>
-                </table>
+                月底
             </div>
         </div>
 
@@ -258,7 +235,7 @@
             </div>
             <div class="card">
                 <div class="card-title"><i class="fas fa-lightbulb"></i> הצעות לשיפור</div>
-                <div style="display:flex; gap:8px; margin-bottom:15px;">
+                <div style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap;">
                     <input type="text" id="suggAuthor" placeholder="שם המציע" style="flex:1;">
                     <input type="text" id="suggTitle" placeholder="תוכן ההצעה" style="flex:2;">
                     <button id="addSuggBtn"><i class="fas fa-plus"></i> הוסף</button>
@@ -275,9 +252,8 @@
     </div>
 </div>
 
-<!-- כפתורי אדמין -->
 <button class="admin-btn" id="adminBtn">👑 כניסת ועד בית</button>
-<button class="toggle-real-btn" id="toggleRealBtn" style="display:none;">🔓 הצג נתונים אמיתיים של כל הדיירים</button>
+<button class="toggle-real-btn" id="toggleRealBtn" style="display:none;">🔓 הצג נתונים אמיתיים</button>
 
 <div class="sync-status" id="syncStatus">☁️ מתחבר...</div>
 
@@ -295,7 +271,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     
-    // ========== משתנים ==========
+    // ========== VARIABLES ==========
     let payments = [];
     let expenses = [];
     let forum = [];
@@ -305,7 +281,7 @@
     let currentYear = 2026;
     let currentMonth = null;
     let isAdmin = false;
-    let showRealData = false;  // האם להציג נתונים אמיתיים (רק לאדמין)
+    let showRealData = false;
     let currentUser = null;
     let specialDebts = [];
     let selectedFile = null;
@@ -320,40 +296,12 @@
         { value: '10', name: 'אוקטובר' }, { value: '11', name: 'נובמבר' }, { value: '12', name: 'דצמבר' }
     ];
     
-    // ========== פונקציות עזר ==========
+    // ========== HELPERS ==========
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
     function cleanPhone(phone) { let p = phone.replace(/\D/g,''); if(p.startsWith('0')) p = '972'+p.substring(1); return p; }
     function isAfterStart(dateStr) { if(!dateStr) return false; let [y,m] = dateStr.split('-'); return new Date(parseInt(y), parseInt(m)-1) >= START_DATE; }
     
-    // ========== פונקציות מיסוך (Masking) ==========
-    // מחזיר מספר מוסווה של חייבים (0.8%-0.9% מכלל הדיירים)
-    function getMaskedDebtorsCount(totalResidents, realDebtorsCount) {
-        if(showRealData || isAdmin) return realDebtorsCount;
-        // 0.8% - 0.9% מכלל הדיירים
-        let percent = 0.008 + (Math.random() * 0.001);
-        let masked = Math.ceil(totalResidents * percent);
-        // לפחות 0, לכל היותר 1-2
-        return Math.min(masked, 2);
-    }
-    
-    // מחזיר סכום חוב מוסווה (לא יותר מ-30% מהתשלום החודשי)
-    function getMaskedDebtAmount(realDebt, monthlyAmount) {
-        if(showRealData || isAdmin) return realDebt;
-        if(realDebt <= 0) return 0;
-        // מיסוך: עד 30% מהתשלום החודשי
-        const maxMasked = monthlyAmount * 0.3;
-        const masked = Math.random() * maxMasked;
-        return parseFloat(masked.toFixed(2));
-    }
-    
-    // בדיקה אם לתושב יש חוב (אמיתי)
-    function hasRealDebt(residentName, monthsList) {
-        const regularDebt = calculateRegularDebtReal(residentName, monthsList);
-        const specialDebt = calculateSpecialDebtReal(residentName);
-        return (regularDebt + specialDebt) > 0;
-    }
-    
-    // ========== חישובי חובות אמיתיים ==========
+    // ========== REAL DEBT CALCULATIONS ==========
     function getMonthsList() {
         let months = [];
         let year = START_DATE.getFullYear();
@@ -392,49 +340,92 @@
         return payments.filter(p => p.payer === residentName && p.type === 'regular').reduce((s,p)=>s+p.amount,0);
     }
     
-    // ========== חישובי חובות עם מיסוך (לתצוגה) ==========
+    function getRealTotalDebt(residentName, monthsList) {
+        return calculateRegularDebtReal(residentName, monthsList) + calculateSpecialDebtReal(residentName);
+    }
+    
+    // ========== MASKING ==========
+    // מחזיר רשימה של עד 3 חייבים עם החובות הגדולים ביותר (אמיתיים)
+    function getTopDebtors(monthsList) {
+        let debtors = [];
+        for(let resident of residents) {
+            const debt = getRealTotalDebt(resident.name, monthsList);
+            if(debt > 0) {
+                debtors.push({ name: resident.name, debt: debt });
+            }
+        }
+        debtors.sort((a,b) => b.debt - a.debt);
+        return debtors.slice(0, 3); // עד 3 החייבים הגדולים
+    }
+    
+    // מחזיר סכום מוסווה (50-100 שקלים)
+    function getMaskedDebtAmount() {
+        return 50 + Math.random() * 50; // 50-100
+    }
+    
+    // ========== DISPLAY DEBT (WITH MASKING) ==========
     function getDisplayDebt(residentName, monthsList, isCurrentUser) {
-        const realRegularDebt = calculateRegularDebtReal(residentName, monthsList);
-        const realSpecialDebt = calculateSpecialDebtReal(residentName);
-        const realTotalDebt = realRegularDebt + realSpecialDebt;
+        const realDebt = getRealTotalDebt(residentName, monthsList);
+        const topDebtors = getTopDebtors(monthsList);
+        const isInTopDebtors = topDebtors.some(d => d.name === residentName);
         
-        // אם זה המשתמש הנוכחי או אדמין במצב הצגת נתונים אמיתיים -> מציגים אמת
-        if(isCurrentUser || showRealData || isAdmin) {
+        // אם זה המשתמש הנוכחי -> מציגים אמת
+        if(isCurrentUser) {
             return {
-                regularDebt: realRegularDebt,
-                specialDebt: realSpecialDebt,
-                totalDebt: realTotalDebt,
-                hasDebt: realTotalDebt > 0,
-                displayText: realTotalDebt > 0 ? `${realTotalDebt.toFixed(2)} ₪ חוב` : 'מאוזן',
-                displayClass: realTotalDebt > 0 ? 'debt-negative' : 'paid-green'
+                totalDebt: realDebt,
+                hasDebt: realDebt > 0,
+                displayText: realDebt > 0 ? `${realDebt.toFixed(2)} ₪ חוב` : 'מאוזן',
+                displayClass: realDebt > 0 ? 'debt-negative' : 'paid-green',
+                isMasked: false
             };
         }
         
-        // מיסוך: אם אין חוב אמיתי -> מראים ירוק "מאוזן"
-        if(realTotalDebt <= 0) {
+        // מצב אדמין שמציג נתונים אמיתיים
+        if(showRealData && isAdmin) {
             return {
-                regularDebt: 0,
-                specialDebt: 0,
+                totalDebt: realDebt,
+                hasDebt: realDebt > 0,
+                displayText: realDebt > 0 ? `${realDebt.toFixed(2)} ₪ חוב` : 'מאוזן',
+                displayClass: realDebt > 0 ? 'debt-negative' : 'paid-green',
+                isMasked: false
+            };
+        }
+        
+        // אין חוב אמיתי -> מראים ירוק
+        if(realDebt <= 0) {
+            return {
                 totalDebt: 0,
                 hasDebt: false,
                 displayText: 'מאוזן',
-                displayClass: 'paid-green'
+                displayClass: 'paid-green',
+                isMasked: false
             };
         }
         
-        // יש חוב אמיתי -> מיסוך: מראים סכום קטן (עד 30% מהתשלום החודשי) וצבע ירוק
-        const maskedAmount = getMaskedDebtAmount(realTotalDebt, monthlyDue);
+        // יש חוב אמיתי:
+        // אם זה אחד מ-3 החייבים הגדולים -> מראים סכום מוסווה (50-100) בירוק
+        if(isInTopDebtors) {
+            const maskedAmount = getMaskedDebtAmount();
+            return {
+                totalDebt: maskedAmount,
+                hasDebt: true,
+                displayText: `${maskedAmount.toFixed(2)} ₪`,
+                displayClass: 'paid-green',
+                isMasked: true
+            };
+        }
+        
+        // שאר החייבים (לא בטופ 3) -> מראים "מאוזן" ירוק
         return {
-            regularDebt: maskedAmount,
-            specialDebt: 0,
-            totalDebt: maskedAmount,
-            hasDebt: maskedAmount > 0,
-            displayText: maskedAmount > 0 ? `${maskedAmount.toFixed(2)} ₪` : 'מאוזן',
-            displayClass: 'paid-green'  // אפילו שיש חוב מוסווה - מראים ירוק
+            totalDebt: 0,
+            hasDebt: false,
+            displayText: 'מאוזן',
+            displayClass: 'paid-green',
+            isMasked: true
         };
     }
     
-    // ========== WhatsApp ==========
+    // ========== WHATSAPP ==========
     function getResidentPhone(name) {
         let r = residents.find(r => r.name === name);
         return r ? r.phone : null;
@@ -450,7 +441,7 @@
         return true;
     }
     
-    // ========== הורדת דוח תשלומים ==========
+    // ========== DOWNLOAD REPORT ==========
     function downloadPaymentReport() {
         if(!currentUser) {
             alert("רק תושבים מחוברים יכולים להוריד דוח.");
@@ -502,7 +493,7 @@
         alert(`✅ הדוח הורד בהצלחה!\nסה"כ שולם: ${totalAll.toFixed(2)} ₪`);
     }
     
-    // ========== ניהול חובות מיוחדים ==========
+    // ========== SPECIAL DEBTS ==========
     function distributeExpense(expense) {
         if(expense.amount <= 500) return;
         if(residents.length === 0) return;
@@ -715,19 +706,7 @@
         let tbody = document.getElementById('paymentsBody');
         if(!tbody) return;
         
-        // חישוב מספר החייבים האמיתי לצורך מיסוך
-        let realDebtorsCount = 0;
-        residents.forEach(resident => {
-            if(hasRealDebt(resident.name, monthsList)) realDebtorsCount++;
-        });
-        
-        // מיסוך מספר החייבים (רק אם לא אדמין במצב אמת)
-        let displayDebtorsCount = realDebtorsCount;
-        let showMaskBadge = false;
-        if(!isAdmin && !showRealData && currentUser) {
-            displayDebtorsCount = getMaskedDebtorsCount(residents.length, realDebtorsCount);
-            showMaskBadge = displayDebtorsCount !== realDebtorsCount;
-        }
+        let topDebtors = getTopDebtors(monthsList);
         
         let rows = '';
         for(let resident of residents) {
@@ -735,38 +714,35 @@
             const displayDebt = getDisplayDebt(resident.name, monthsList, isCurrent);
             const totalRegularPayments = getTotalRegularPaymentsReal(resident.name);
             const totalRequired = monthsList.length * monthlyDue;
+            const specialDebtReal = calculateSpecialDebtReal(resident.name);
             
-            // סכום החיוב הכולל
-            let totalCharge = totalRequired;
-            let specialDisplay = 0;
-            if(!isCurrent && !showRealData && !isAdmin && displayDebt.specialDebt === 0 && displayDebt.totalDebt > 0) {
-                specialDisplay = displayDebt.totalDebt;
-            } else {
-                specialDisplay = displayDebt.specialDebt;
-            }
+            const isInTopDebtors = topDebtors.some(d => d.name === resident.name);
+            const showMaskIcon = (!isCurrent && !showRealData && !isAdmin && displayDebt.isMasked);
             
             rows += `<tr>
-                <td>${escapeHtml(resident.name)} ${showMaskBadge && !isCurrent ? '<span class="mask-badge">🔒</span>' : ''}</td>
+                <td>${escapeHtml(resident.name)} ${showMaskIcon ? '<span class="mask-badge">🔒</span>' : ''}${(showRealData && isAdmin) ? '<span class="real-mode-badge">📊 אמת</span>' : ''}${(isCurrent && getRealTotalDebt(resident.name, monthsList) > 0) ? '<span class="mask-badge" style="background:#c9693e;color:white;">⚠️ חוב</span>' : ''}</td>
                 <td>${monthsList.length}</td>
-                <td>${totalCharge.toFixed(2)} ₪</td>
+                <td>${totalRequired.toFixed(2)} ₪</td>
                 <td class="${displayDebt.hasDebt && !isCurrent ? 'paid-green' : ''}">${totalRegularPayments.toFixed(2)} ₪</td>
                 <td><span class="${displayDebt.displayClass}">${displayDebt.displayText}</span></td>
-                <td><span class="${displayDebt.displayClass}">${specialDisplay > 0 ? specialDisplay.toFixed(2) + ' ₪' : '0 ₪'}</span></td>
-                <td><span class="${displayDebt.displayClass}">${(displayDebt.totalDebt).toFixed(2)} ₪</span></td>
+                <td><span class="${displayDebt.displayClass}">${specialDebtReal > 0 && (isCurrent || (showRealData && isAdmin)) ? specialDebtReal.toFixed(2) + ' ₪' : '0 ₪'}</span></td>
+                <td><span class="${displayDebt.displayClass}">${displayDebt.totalDebt.toFixed(2)} ₪</span></td>
                 <td>${isAdmin ? `<i class="fas fa-edit edit-icon" onclick="editResident('${resident.id}')"></i>` : ''}</td>
             </tr>`;
         }
         tbody.innerHTML = rows || '<tr><td colspan="8">אין מידע</td></tr>';
         
-        // הוספת הערת מיסוך אם קיימת
+        // הערת הסבר על מיסוך
         let existingNote = document.getElementById('maskingNote');
-        if(showMaskBadge && !existingNote) {
-            let note = document.createElement('div');
-            note.id = 'maskingNote';
-            note.style.cssText = 'font-size:0.7rem; color:#666; margin-top:10px; padding:5px; background:#f0f0f0; border-radius:12px; text-align:center;';
-            note.innerHTML = '🔒 *הנתונים המוצגים הם חלקיים לצורכי פרטיות. הסכומים המדויקים שלך בלבד זמינים בהורדת הדוח.*';
-            tbody.parentElement.parentElement.appendChild(note);
-        } else if(!showMaskBadge && existingNote) {
+        if(!showRealData && !isAdmin && currentUser && topDebtors.length > 0) {
+            if(!existingNote) {
+                let note = document.createElement('div');
+                note.id = 'maskingNote';
+                note.style.cssText = 'font-size:0.7rem; color:#666; margin-top:10px; padding:8px; background:#f0f0f0; border-radius:12px; text-align:center;';
+                note.innerHTML = '🔒 *הנתונים המוצגים הם חלקיים. רק הנתונים האישיים שלך מדויקים. הורדת הדוח מציגה את מלוא הפרטים שלך.*';
+                tbody.parentElement.parentElement.appendChild(note);
+            }
+        } else if(existingNote) {
             existingNote.remove();
         }
     }
@@ -789,8 +765,8 @@
         tbody.innerHTML = rows || '<tr><td colspan="6">אין הוצאות</td></tr>';
         let totalExp = filtered.reduce((s,e)=>s+e.amount,0);
         document.getElementById('totalExpenses').innerText = totalExp.toFixed(2);
-        let totalPayments = payments.filter(p => p.type === 'regular').reduce((s,p)=>s+p.amount,0);
-        document.getElementById('balance').innerText = (totalPayments - totalExp).toFixed(2);
+        let totalPaymentsSum = payments.filter(p => p.type === 'regular').reduce((s,p)=>s+p.amount,0);
+        document.getElementById('balance').innerText = (totalPaymentsSum - totalExp).toFixed(2);
     }
     
     function renderForum() {
@@ -828,6 +804,10 @@
         if(residentButtons) residentButtons.style.display = isLogged ? 'flex' : 'none';
         if(toggleRealBtn) toggleRealBtn.style.display = isAdmin ? 'block' : 'none';
         
+        if(isAdmin && toggleRealBtn) {
+            toggleRealBtn.innerHTML = showRealData ? '🔒 חזור לתצוגה רגילה' : '🔓 הצג נתונים אמיתיים של כל הדיירים';
+        }
+        
         document.getElementById('monthlyDueDisplay').innerText = monthlyDue;
         updateResidentsUI();
         if(isLogged) {
@@ -843,7 +823,7 @@
         }
     }
     
-    // ========== Auth ==========
+    // ========== AUTH ==========
     function showAgreementModal(phone, apt, residentName, callback) {
         let modal = document.createElement('div');
         modal.className = 'modal-overlay';
@@ -854,7 +834,6 @@
                     <p><strong>🎯 "ביחד יוצרים בית טוב יותר"</strong></p>
                     <p>✅ אחריות קהילתית – השתתפות פעילה היא חובה</p>
                     <p>✅ תשלום חודשי קבוע – אי תשלום פוגע בכולם</p>
-                    <p>✅ חסימת גישה לחוב חריג מעל 2 חודשים</p>
                     <p>✅ הוצאות מעל 500₪ מתחלקות בין הדיירים</p>
                     <p style="margin-top:10px; background:#ffffff30; padding:8px; border-radius:12px;">💚 הבית שלך לא יתנהל לבד!</p>
                 </div>
@@ -909,7 +888,7 @@
         renderAll();
     }
     
-    // ========== Event Listeners ==========
+    // ========== EVENT LISTENERS ==========
     document.getElementById('authCheckBtn').onclick = () => {
         let phone = document.getElementById('authPhone').value.trim();
         let apt = document.getElementById('authApartment').value.trim();
@@ -949,9 +928,8 @@
     document.getElementById('toggleRealBtn').onclick = () => {
         if(isAdmin) {
             showRealData = !showRealData;
-            document.getElementById('toggleRealBtn').innerHTML = showRealData ? '🔒 חזור לתצוגה רגילה' : '🔓 הצג נתונים אמיתיים של כל הדיירים';
             renderAll();
-            alert(showRealData ? "מציג נתונים אמיתיים של כל הדיירים" : "חזר למצב מיסוך רגיל");
+            alert(showRealData ? "🔓 מציג נתונים אמיתיים של כל הדיירים" : "🔒 חזר למצב מיסוך רגיל");
         }
     };
     
