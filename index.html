@@ -52,30 +52,38 @@
         }
         .toggle-real-btn:hover { background: #e08e3a; }
         
+        /* מודל גדול יותר פי 2 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
             display: flex; align-items: center; justify-content: center;
             z-index: 10000;
         }
         .modal-agreement {
             background: linear-gradient(135deg, #a0d2e4, #55b7cd, #2c7a8c);
-            border-radius: 28px; padding: 25px; max-width: 500px; width: 90%;
+            border-radius: 48px; padding: 50px 40px; max-width: 1000px; width: 90%;
             color: white;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
         }
+        .modal-agreement h3 { font-size: 2.2rem; margin-bottom: 25px; text-align: center; }
         .modal-agreement .agreement-text {
             background: rgba(255,255,255,0.15);
-            border-radius: 16px; padding: 15px; margin: 15px 0;
-            font-size: 0.8rem;
+            border-radius: 32px; padding: 30px; margin: 25px 0;
+            font-size: 1.1rem; line-height: 1.6;
+            max-height: 500px; overflow-y: auto;
         }
-        .modal-buttons { display: flex; gap: 12px; justify-content: center; }
+        .modal-agreement .agreement-text p { margin: 12px 0; }
+        .modal-buttons { display: flex; gap: 20px; justify-content: center; margin-top: 20px; }
+        .modal-buttons button { padding: 16px 32px; font-size: 1.1rem; border-radius: 60px; }
         .btn-accept { background: #ffd966; color: #2c5a4a; }
         .btn-decline { background: rgba(255,255,255,0.3); color: white; }
         .btn-accept:disabled { opacity: 0.5; }
+        .checkbox-label { display: flex; align-items: center; gap: 15px; margin: 20px 0; font-size: 1.1rem; }
+        .checkbox-label input { width: 24px; height: 24px; }
         
         .auth-card { border: 2px solid #48b5a3; }
         .auth-input-group { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-        .auth-input-group input { flex: 1; padding: 12px 18px; border-radius: 60px; border: 1px solid #cce2da; }
+        .auth-input-group input { flex: 1; padding: 12px 18px; border-radius: 60px; border: 1px solid #cce2da; font-size: 1rem; }
         .auth-status { margin-top: 12px; padding: 10px; border-radius: 30px; font-size: 0.85rem; }
         .auth-status.success { background: #d4edda; color: #155724; }
         .auth-status.error { background: #f8d7da; color: #721c24; }
@@ -289,7 +297,6 @@
     
     const IMGBB_API_KEY = "f9bb791d0681c7cf81b6a7cd1456e4aa";
     const START_DATE = new Date(2026, 0);
-    const CURRENT_VIEW_MONTH = "2026-04";
     
     const allMonths = [
         { value: '01', name: 'ינואר' }, { value: '02', name: 'פברואר' }, { value: '03', name: 'מרץ' },
@@ -395,35 +402,25 @@
         return paidToDebts;
     }
     
-    // ========== Masking ==========
-    function getTopDebtors(monthsList) {
-        let debtors = [];
+    // ========== Masking - Random debtors from real debtors ==========
+    function getRandomMaskedDebtors(monthsList) {
+        // Get all real debtors
+        let realDebtors = [];
         for(let resident of residents) {
-            const regularDebt = calculateRegularDebtReal(resident.name, monthsList);
-            const specialDebt = calculateSpecialDebtReal(resident.name);
-            const total = regularDebt + specialDebt;
-            if(total > 0) debtors.push({ name: resident.name, total: total, regularDebt: regularDebt, specialDebt: specialDebt });
+            const totalDebt = getRealTotalDebt(resident.name, monthsList);
+            if(totalDebt > 0) {
+                realDebtors.push(resident.name);
+            }
         }
-        debtors.sort((a,b) => b.total - a.total);
-        return debtors;
-    }
-    
-    function getMaskedRegularDebt(regularDebt, monthsList, isTopDebtor) {
-        if(regularDebt <= 0) return { text: 'מאוזן', class: 'paid-green' };
-        if(isTopDebtor) {
-            const masked = 50 + (Math.random() * 50);
-            return { text: `${masked.toFixed(2)} ₪`, class: 'debt-negative' };
+        
+        // Shuffle array
+        for(let i = realDebtors.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [realDebtors[i], realDebtors[j]] = [realDebtors[j], realDebtors[i]];
         }
-        return { text: 'מאוזן', class: 'paid-green' };
-    }
-    
-    function getMaskedSpecialDebt(specialDebt, isTopSpecialDebtor, paidPercent) {
-        if(specialDebt <= 0) return { text: '0 ₪', class: 'paid-green' };
-        if(isTopSpecialDebtor) {
-            if(paidPercent === 0) return { text: `${specialDebt.toFixed(2)} ₪`, class: 'debt-negative' };
-            if(paidPercent === 50) return { text: `${(specialDebt * 0.5).toFixed(2)} ₪`, class: 'debt-negative' };
-        }
-        return { text: '0 ₪', class: 'paid-green' };
+        
+        // Return up to 3 random debtors
+        return realDebtors.slice(0, 3);
     }
     
     // ========== WhatsApp ==========
@@ -639,8 +636,8 @@
         const tbody = document.getElementById('paymentsBody');
         if(!tbody) return;
         
-        const topDebtors = getTopDebtors(monthsList);
-        const topSpecialDebtors = specialDebts.length > 0 ? specialDebts[0].payments.map(p => p.payer).slice(0, 4) : [];
+        // Get random masked debtors (up to 3 random from real debtors)
+        const maskedDebtors = getRandomMaskedDebtors(monthsList);
         
         let rows = '';
         for(let resident of residents) {
@@ -650,39 +647,45 @@
             const totalRegularPayments = getTotalRegularPaymentsReal(resident.name);
             const totalRequired = monthsList.length * monthlyDue;
             
-            let displayRegular = { text: '', class: '' };
-            let displaySpecial = { text: '', class: '' };
+            let displayRegularText = '';
+            let displayRegularClass = '';
+            let displaySpecialText = '';
+            let displaySpecialClass = '';
+            let displayTotalText = '';
+            let displayTotalClass = '';
             
             if(isCurrent || (showRealData && isAdmin)) {
-                displayRegular = { text: realRegularDebt > 0 ? `${realRegularDebt.toFixed(2)} ₪` : (realRegularDebt < 0 ? `${Math.abs(realRegularDebt).toFixed(2)} ₪ יתרה` : 'מאוזן'), class: realRegularDebt > 0 ? 'debt-negative' : (realRegularDebt < 0 ? 'debt-positive' : 'paid-green') };
-                displaySpecial = { text: realSpecialDebt > 0 ? `${realSpecialDebt.toFixed(2)} ₪` : '0 ₪', class: realSpecialDebt > 0 ? 'debt-negative' : 'paid-green' };
+                // Real data mode
+                displayRegularText = realRegularDebt > 0 ? `${realRegularDebt.toFixed(2)} ₪` : (realRegularDebt < 0 ? `${Math.abs(realRegularDebt).toFixed(2)} ₪ יתרה` : 'מאוזן');
+                displayRegularClass = realRegularDebt > 0 ? 'debt-negative' : (realRegularDebt < 0 ? 'debt-positive' : 'paid-green');
+                displaySpecialText = realSpecialDebt > 0 ? `${realSpecialDebt.toFixed(2)} ₪` : '0 ₪';
+                displaySpecialClass = realSpecialDebt > 0 ? 'debt-negative' : 'paid-green';
+                displayTotalText = (realRegularDebt + realSpecialDebt) > 0 ? `${(realRegularDebt + realSpecialDebt).toFixed(2)} ₪` : '0 ₪';
+                displayTotalClass = (realRegularDebt + realSpecialDebt) > 0 ? 'debt-negative' : 'paid-green';
             } else {
-                if(realRegularDebt <= 0) {
-                    displayRegular = { text: 'מאוזן', class: 'paid-green' };
+                // Masking mode
+                // Regular debt - show real amount (not masked)
+                displayRegularText = realRegularDebt > 0 ? `${realRegularDebt.toFixed(2)} ₪` : (realRegularDebt < 0 ? `${Math.abs(realRegularDebt).toFixed(2)} ₪ יתרה` : 'מאוזן');
+                displayRegularClass = realRegularDebt > 0 ? 'debt-negative' : (realRegularDebt < 0 ? 'debt-positive' : 'paid-green');
+                
+                // Special debt - mask for random debtors
+                const isMaskedDebtor = maskedDebtors.includes(resident.name);
+                if(realSpecialDebt <= 0) {
+                    displaySpecialText = '0 ₪';
+                    displaySpecialClass = 'paid-green';
+                } else if(isMaskedDebtor) {
+                    // Show masked amount (50-100 shekels) for random debtors
+                    const maskedAmount = 50 + Math.random() * 50;
+                    displaySpecialText = `${maskedAmount.toFixed(2)} ₪`;
+                    displaySpecialClass = 'debt-negative';
                 } else {
-                    const topIndex = topDebtors.findIndex(d => d.name === resident.name);
-                    if(topIndex === 0 || topIndex === 1) {
-                        const masked = 50 + Math.random() * 50;
-                        displayRegular = { text: `${masked.toFixed(2)} ₪`, class: 'debt-negative' };
-                    } else {
-                        displayRegular = { text: 'מאוזן', class: 'paid-green' };
-                    }
+                    displaySpecialText = '0 ₪';
+                    displaySpecialClass = 'paid-green';
                 }
                 
-                if(realSpecialDebt <= 0) {
-                    displaySpecial = { text: '0 ₪', class: 'paid-green' };
-                } else {
-                    const specialIndex = topSpecialDebtors.indexOf(resident.name);
-                    if(specialIndex === 0 || specialIndex === 1) {
-                        displaySpecial = { text: `${realSpecialDebt.toFixed(2)} ₪`, class: 'debt-negative' };
-                    } else if(specialIndex === 2 || specialIndex === 3) {
-                        const paidPercent = 0.3 + Math.random() * 0.2;
-                        const remaining = realSpecialDebt * (1 - paidPercent);
-                        displaySpecial = { text: `${remaining.toFixed(2)} ₪`, class: 'debt-negative' };
-                    } else {
-                        displaySpecial = { text: '0 ₪', class: 'paid-green' };
-                    }
-                }
+                displayTotalText = (realRegularDebt > 0 ? realRegularDebt : 0) + (displaySpecialText !== '0 ₪' ? parseFloat(displaySpecialText) || 0 : 0);
+                displayTotalText = displayTotalText > 0 ? `${displayTotalText.toFixed(2)} ₪` : (realRegularDebt < 0 ? `${Math.abs(realRegularDebt).toFixed(2)} ₪ יתרה` : '0 ₪');
+                displayTotalClass = (displayRegularClass === 'debt-negative' || displaySpecialClass === 'debt-negative') ? 'debt-negative' : 'paid-green';
             }
             
             const showMaskIcon = (!isCurrent && !showRealData && !isAdmin && (realRegularDebt > 0 || realSpecialDebt > 0));
@@ -690,14 +693,27 @@
             rows += `<tr>
                 <td>${escapeHtml(resident.name)} ${showMaskIcon ? '<span class="mask-badge">🔒</span>' : ''}${(isCurrent && (realRegularDebt > 0 || realSpecialDebt > 0)) ? '<span class="mask-badge" style="background:#c9693e;color:white;">⚠️ חוב</span>' : ''}</td>
                 <td>${monthsList.length}</td><td>${totalRequired.toFixed(2)} ₪</td><td>${totalRegularPayments.toFixed(2)} ₪</td>
-                <td><span class="${displayRegular.class}">${displayRegular.text}</span></td>
-                <td><span class="${displaySpecial.class}">${displaySpecial.text}</span></td>
-                <td><span class="${(displayRegular.class === 'debt-negative' || displaySpecial.class === 'debt-negative') ? 'debt-negative' : 'paid-green'}">${(displayRegular.text !== 'מאוזן' ? parseFloat(displayRegular.text) || 0 : 0) + (displaySpecial.text !== '0 ₪' ? parseFloat(displaySpecial.text) || 0 : 0)} ₪</span></td>
+                <td><span class="${displayRegularClass}">${displayRegularText}</span></td>
+                <td><span class="${displaySpecialClass}">${displaySpecialText}</span></td>
+                <td><span class="${displayTotalClass}">${displayTotalText}</span></td>
                 <td>${isAdmin ? `<i class="fas fa-edit edit-icon" onclick="editResident('${resident.id}')"></i>` : ''}</td>
             </tr>`;
         }
         
         tbody.innerHTML = rows || '<tr><td colspan="8">אין מידע</td></tr>';
+        
+        // Remove old note if exists
+        let existingNote = document.getElementById('maskingNote');
+        if(existingNote) existingNote.remove();
+        
+        // Add masking note for non-admin users
+        if(!showRealData && !isAdmin && currentUser && maskedDebtors.length > 0) {
+            const note = document.createElement('div');
+            note.id = 'maskingNote';
+            note.style.cssText = 'font-size:0.7rem; color:#666; margin-top:10px; padding:8px; background:#f0f0f0; border-radius:12px; text-align:center;';
+            note.innerHTML = '🔒 *הנתונים המוצגים הם חלקיים לצורכי פרטיות. סכומי החוב המיוחד מוצגים באופן חלקי. הנתונים האישיים שלך מדויקים.*';
+            tbody.parentElement.parentElement.appendChild(note);
+        }
     }
     
     function renderExpensesTable() {
@@ -715,7 +731,7 @@
                 <td>${isSpecial ? `${residents.length} דיירים - ${(e.amount/residents.length).toFixed(2)} ₪ לדייר` : 'רגיל'}</td>
                 <td>${e.cloudUrl ? `<i class="fas fa-cloud-upload-alt" style="cursor:pointer;color:#4285f4;" onclick="window.open('${e.cloudUrl}','_blank')"></i>` : '❌'}</td>
                 <td>${isAdmin ? `<i class="fas fa-trash-alt delete-icon" onclick="deleteExpense('${e.id}')"></i>` : ''}</td>
-            <tr>`;
+            </tr>`;
         }).join('');
         tbody.innerHTML = rows || '<tr><td colspan="6">אין הוצאות</td></tr>';
         const totalExp = filtered.reduce((s,e) => s + e.amount, 0);
@@ -771,7 +787,7 @@
             renderSuggestions();
         } else {
             const paymentsBody = document.getElementById('paymentsBody');
-            if(paymentsBody) paymentsBody.innerHTML = '<tr><td colspan="8">🔒 נדרשת הזדהות תושב</td></tr>';
+            if(paymentsBody) paymentsBody.innerHTML = '<table><td colspan="8">🔒 נדרשת הזדהות תושב</td></tr>';
             const expensesBody = document.getElementById('expensesBody');
             if(expensesBody) expensesBody.innerHTML = '<tr><td colspan="6">🔒 נדרשת הזדהות תושב</td></tr>';
         }
@@ -789,10 +805,11 @@
                     <p>✅ אחריות קהילתית – השתתפות פעילה היא חובה</p>
                     <p>✅ תשלום חודשי קבוע – אי תשלום פוגע בכולם</p>
                     <p>✅ הוצאות מעל 500₪ מתחלקות בין הדיירים</p>
-                    <p style="margin-top:10px; background:#ffffff30; padding:8px; border-radius:12px;">💚 הבית שלך לא יתנהל לבד!</p>
+                    <p>✅ נתונים אישיים שלך נשמרים בסודיות מלאה</p>
+                    <p style="margin-top:20px; background:#ffffff30; padding:15px; border-radius:20px;">💚 <strong>הבית שלך לא יתנהל לבד!</strong><br>תושב שלא משתתף - לא מבקר. בוא להיות חלק מההצלחה!</p>
                 </div>
-                <label class="checkbox-label"><input type="checkbox" id="agreeCheck"> <span>✅ אני מאשר/ת ומתחייב/ת לכל התנאים</span></label>
-                <div class="modal-buttons"><button class="btn-accept" id="acceptBtn" disabled><i class="fas fa-check"></i> כניסה</button><button class="btn-decline" id="declineBtn"><i class="fas fa-times"></i> חזרה לאורח</button></div>
+                <label class="checkbox-label"><input type="checkbox" id="agreeCheck"> <span>✅ אני קראתי, הבנתי ומתחייב לכל התנאים</span></label>
+                <div class="modal-buttons"><button class="btn-accept" id="acceptBtn" disabled><i class="fas fa-check"></i> כניסה לתושב מאושר</button><button class="btn-decline" id="declineBtn"><i class="fas fa-times"></i> חזרה לאורח</button></div>
             </div>
         `;
         document.body.appendChild(modal);
@@ -840,7 +857,7 @@
     document.getElementById('authLogoutBtn').onclick = () => { currentUser = null; localStorage.removeItem('currentUser'); updateAuthUI(); alert("התנתקת בהצלחה."); };
     document.getElementById('downloadReportBtn').onclick = downloadPaymentReport;
     document.getElementById('adminBtn').onclick = () => { const pwd = prompt("קוד גישה לוועד בית:"); if(pwd === "bafy2020") { isAdmin = true; showRealData = false; renderAll(); alert("ברוך הבא! כעת אתה במצב ועד בית."); } else { alert("קוד שגוי!"); } };
-    document.getElementById('toggleRealBtn').onclick = () => { if(isAdmin) { showRealData = !showRealData; renderAll(); alert(showRealData ? "🔓 מציג נתונים אמיתיים" : "🔒 חזר למצב מיסוך"); } };
+    document.getElementById('toggleRealBtn').onclick = () => { if(isAdmin) { showRealData = !showRealData; renderAll(); alert(showRealData ? "🔓 מציג נתונים אמיתיים של כל הדיירים" : "🔒 חזר למצב מיסוך רגיל"); } };
     document.getElementById('addPaymentBtn').onclick = addPayment;
     document.getElementById('addExpenseBtn').onclick = addExpense;
     document.getElementById('addResidentBtn').onclick = addResident;
