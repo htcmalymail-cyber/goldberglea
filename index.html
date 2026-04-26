@@ -114,7 +114,6 @@
         .download-report-btn:hover { background: #128C7E; }
         .resident-buttons { display: flex; gap: 10px; align-items: center; }
         .mask-badge { font-size: 0.7rem; background: #ffd966; color: #2c5a4a; border-radius: 20px; padding: 2px 8px; margin-right: 8px; }
-        .real-mode-badge { background: #c9693e; color: white; border-radius: 20px; padding: 2px 8px; font-size: 0.7rem; margin-right: 10px; }
         
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .fa-spin { animation: spin 1s linear infinite; }
@@ -126,7 +125,7 @@
     <div class="header">
         <div><i class="fas fa-crown"></i> <i class="fas fa-home"></i> <i class="fab fa-whatsapp"></i></div>
         <h1>🏢 גולדברג ליה – ניהול בית משותף</h1>
-        <p>🌿 קבלות ב-ImgBB | שליחת קוויטנציה | ☁️ סינכרון אוטומטי | 📊 הוצאות מעל 500₪ מתחלקות</p>
+        <p>🌿 קבלות ב-ImgBB | שליחת קוויטנציה | ☁️ סינכרון | 📊 הוצאות מעל 500₪ מתחלקות</p>
     </div>
 
     <div class="card auth-card">
@@ -146,7 +145,7 @@
 
     <div id="restrictedContent" style="display:none;">
         <div class="card">
-            <div class="card-title"><i class="fas fa-calendar-alt"></i> בחירת תקופה (מינואר 2026)</div>
+            <div class="card-title"><i class="fas fa-calendar-alt"></i> בחירת תקופה</div>
             <div class="year-selector" id="yearSelector">
                 <button class="year-btn" data-year="2026">2026</button>
                 <button class="year-btn" data-year="2027">2027</button>
@@ -259,7 +258,7 @@
 <div class="sync-status" id="syncStatus">☁️ מתחבר...</div>
 
 <script>
-    // ========== Firebase Configuration ==========
+    // ========== Firebase ==========
     const firebaseConfig = {
         apiKey: "AIzaSyCbMAYlOnkl1E4hJ-dVsbCuFaSfMNjjV68",
         authDomain: "goldberg-lea.firebaseapp.com",
@@ -273,7 +272,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     
-    // ========== Global Variables ==========
+    // ========== Variables ==========
     let payments = [];
     let expenses = [];
     let forum = [];
@@ -281,7 +280,7 @@
     let residents = [];
     let monthlyDue = 70;
     let currentYear = 2026;
-    let currentMonth = null;
+    let currentMonth = "2026-04";
     let isAdmin = false;
     let showRealData = false;
     let currentUser = null;
@@ -290,6 +289,7 @@
     
     const IMGBB_API_KEY = "f9bb791d0681c7cf81b6a7cd1456e4aa";
     const START_DATE = new Date(2026, 0);
+    const CURRENT_VIEW_MONTH = "2026-04";
     
     const allMonths = [
         { value: '01', name: 'ינואר' }, { value: '02', name: 'פברואר' }, { value: '03', name: 'מרץ' },
@@ -298,24 +298,20 @@
         { value: '10', name: 'אוקטובר' }, { value: '11', name: 'נובמבר' }, { value: '12', name: 'דצמבר' }
     ];
     
-    // ========== Helper Functions ==========
+    // ========== Helpers ==========
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
     function cleanPhone(phone) { let p = phone.replace(/\D/g,''); if(p.startsWith('0')) p = '972'+p.substring(1); return p; }
     function isAfterStart(dateStr) { if(!dateStr) return false; let [y,m] = dateStr.split('-'); return new Date(parseInt(y), parseInt(m)-1) >= START_DATE; }
+    function updateSyncStatus(text, isError) { let el = document.getElementById('syncStatus'); if(el) { el.innerHTML = text; el.style.background = isError ? 'rgba(220,50,50,0.8)' : 'rgba(0,0,0,0.7)'; } }
     
-    function updateSyncStatus(text, isError) {
-        let el = document.getElementById('syncStatus');
-        if(el) { el.innerHTML = text; el.style.background = isError ? 'rgba(220,50,50,0.8)' : 'rgba(0,0,0,0.7)'; }
-    }
-    
-    // ========== Real Debt Calculations ==========
+    // ========== Months List (from Jan 2026 to current selected month) ==========
     function getMonthsList() {
         let months = [];
         let year = START_DATE.getFullYear();
         let month = START_DATE.getMonth() + 1;
         let endYear = currentYear;
-        let endMonth = currentMonth ? parseInt(currentMonth.split('-')[1]) : 12;
-        if(!currentMonth) endMonth = 12;
+        let endMonth = currentMonth ? parseInt(currentMonth.split('-')[1]) : 4;
+        if(!currentMonth) endMonth = 4;
         while(year < endYear || (year === endYear && month <= endMonth)) {
             months.push(`${year}-${String(month).padStart(2,'0')}`);
             month++;
@@ -324,7 +320,7 @@
         return months;
     }
     
-    // חישוב חוב רגיל אמיתי
+    // ========== Real Debt Calculations ==========
     function calculateRegularDebtReal(residentName, monthsList) {
         if(monthsList.length === 0) return 0;
         const totalRequired = monthsList.length * monthlyDue;
@@ -334,7 +330,6 @@
         return totalRequired - paid;
     }
     
-    // חישוב חוב מיוחד אמיתי (מה שנשאר לשלם)
     function calculateSpecialDebtReal(residentName) {
         let total = 0;
         for(let debt of specialDebts) {
@@ -346,168 +341,12 @@
         return total;
     }
     
-    // סך כל התשלומים הרגילים של תושב
     function getTotalRegularPaymentsReal(residentName) {
         return payments.filter(p => p.payer === residentName && p.type === 'regular').reduce((s,p) => s + p.amount, 0);
     }
     
-    // סך כל התשלומים המיוחדים של תושב
-    function getTotalSpecialPaymentsReal(residentName) {
-        return payments.filter(p => p.payer === residentName && p.type === 'special').reduce((s,p) => s + p.amount, 0);
-    }
-    
-    // חוב כולל אמיתי
     function getRealTotalDebt(residentName, monthsList) {
         return calculateRegularDebtReal(residentName, monthsList) + calculateSpecialDebtReal(residentName);
-    }
-    
-    // ========== Masking Functions ==========
-    function getTopDebtors(monthsList) {
-        let debtors = [];
-        for(let resident of residents) {
-            const debt = getRealTotalDebt(resident.name, monthsList);
-            if(debt > 0) debtors.push({ name: resident.name, debt: debt });
-        }
-        debtors.sort((a,b) => b.debt - a.debt);
-        return debtors.slice(0, 3);
-    }
-    
-    function getMaskedDebtAmount() {
-        return 50 + (Math.random() * 50);
-    }
-    
-    // פונקציה להצגת חוב עם מיסוך
-    function getDisplayDebt(residentName, monthsList, isCurrentUser) {
-        const realRegularDebt = calculateRegularDebtReal(residentName, monthsList);
-        const realSpecialDebt = calculateSpecialDebtReal(residentName);
-        const realTotalDebt = realRegularDebt + realSpecialDebt;
-        
-        // מצב אמיתי: למשתמש עצמו או לאדמין במצב showRealData
-        if(isCurrentUser || (showRealData && isAdmin)) {
-            return {
-                regularDebt: realRegularDebt,
-                specialDebt: realSpecialDebt,
-                totalDebt: realTotalDebt,
-                displayRegularText: realRegularDebt > 0 ? `${realRegularDebt.toFixed(2)} ₪ חוב` : (realRegularDebt < 0 ? `${Math.abs(realRegularDebt).toFixed(2)} ₪ יתרה` : 'מאוזן'),
-                displayRegularClass: realRegularDebt > 0 ? 'debt-negative' : (realRegularDebt < 0 ? 'debt-positive' : 'paid-green'),
-                displaySpecialText: realSpecialDebt > 0 ? `${realSpecialDebt.toFixed(2)} ₪` : '0 ₪',
-                displaySpecialClass: realSpecialDebt > 0 ? 'debt-negative' : 'paid-green',
-                displayTotalText: realTotalDebt > 0 ? `${realTotalDebt.toFixed(2)} ₪ חוב` : (realTotalDebt < 0 ? `${Math.abs(realTotalDebt).toFixed(2)} ₪ יתרה` : 'מאוזן'),
-                displayTotalClass: realTotalDebt > 0 ? 'debt-negative' : (realTotalDebt < 0 ? 'debt-positive' : 'paid-green'),
-                isMasked: false
-            };
-        }
-        
-        // אין חוב אמיתי -> מראים ירוק
-        if(realTotalDebt <= 0) {
-            return {
-                regularDebt: 0,
-                specialDebt: 0,
-                totalDebt: 0,
-                displayRegularText: 'מאוזן',
-                displayRegularClass: 'paid-green',
-                displaySpecialText: '0 ₪',
-                displaySpecialClass: 'paid-green',
-                displayTotalText: '0 ₪',
-                displayTotalClass: 'paid-green',
-                isMasked: false
-            };
-        }
-        
-        // יש חוב אמיתי -> מיסוך: מראים סכום קטן (50-100) בירוק
-        const topDebtors = getTopDebtors(monthsList);
-        const isInTopDebtors = topDebtors.some(d => d.name === residentName);
-        
-        if(isInTopDebtors) {
-            const maskedAmount = getMaskedDebtAmount();
-            return {
-                regularDebt: maskedAmount,
-                specialDebt: 0,
-                totalDebt: maskedAmount,
-                displayRegularText: `${maskedAmount.toFixed(2)} ₪`,
-                displayRegularClass: 'paid-green',
-                displaySpecialText: '0 ₪',
-                displaySpecialClass: 'paid-green',
-                displayTotalText: `${maskedAmount.toFixed(2)} ₪`,
-                displayTotalClass: 'paid-green',
-                isMasked: true
-            };
-        }
-        
-        // שאר החייבים (לא בטופ 3) -> מראים ירוק "מאוזן"
-        return {
-            regularDebt: 0,
-            specialDebt: 0,
-            totalDebt: 0,
-            displayRegularText: 'מאוזן',
-            displayRegularClass: 'paid-green',
-            displaySpecialText: '0 ₪',
-            displaySpecialClass: 'paid-green',
-            displayTotalText: '0 ₪',
-            displayTotalClass: 'paid-green',
-            isMasked: true
-        };
-    }
-    
-    // ========== WhatsApp ==========
-    function getResidentPhone(name) {
-        let r = residents.find(r => r.name === name);
-        return r ? r.phone : null;
-    }
-    
-    function sendWhatsApp(residentName, amount, month, isSpecial = false) {
-        let phone = getResidentPhone(residentName);
-        if(!phone) return false;
-        let msg = `🏢 *גולדברג ליה - קבלה* 🏢\n`;
-        msg += isSpecial ? `💎 *תשלום חוב חריג* 💎\n` : `✅ *תשלום אחזקה* ✅\n`;
-        msg += `👤 ${residentName}\n💰 ${amount} ₪\n📅 ${month}\n💚 תודה!`;
-        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-        return true;
-    }
-    
-    // ========== Download Report ==========
-    function downloadPaymentReport() {
-        if(!currentUser) { alert("רק תושבים מחוברים יכולים להוריד דוח."); return; }
-        
-        const userPayments = payments.filter(p => p.payer === currentUser.name);
-        if(userPayments.length === 0) { alert("לא נמצאו תשלומים עבורך במערכת."); return; }
-        
-        const totalRegular = userPayments.filter(p => p.type === 'regular').reduce((s,p) => s + p.amount, 0);
-        const totalSpecial = userPayments.filter(p => p.type === 'special').reduce((s,p) => s + p.amount, 0);
-        const totalAll = totalRegular + totalSpecial;
-        
-        const today = new Date();
-        let csvRows = [];
-        csvRows.push(`דוח תשלומים - גולדברג ליה`);
-        csvRows.push(`תושב: ${currentUser.name}`);
-        csvRows.push(`תאריך הפקה: ${today.toLocaleDateString('he-IL')}`);
-        csvRows.push(``);
-        csvRows.push(`סיכום:`);
-        csvRows.push(`סך תשלומים רגילים,${totalRegular.toFixed(2)} ₪`);
-        csvRows.push(`סך תשלומים מיוחדים,${totalSpecial.toFixed(2)} ₪`);
-        csvRows.push(`סה"כ כל התשלומים,${totalAll.toFixed(2)} ₪`);
-        csvRows.push(``);
-        csvRows.push(`פירוט תשלומים:`);
-        csvRows.push(`חודש,סוג,סכום`);
-        
-        userPayments.sort((a,b) => a.month.localeCompare(b.month));
-        userPayments.forEach(p => {
-            const typeText = p.type === 'regular' ? 'רגיל (אחזקה)' : 'מיוחד (חוב חריג)';
-            csvRows.push(`${p.month},${typeText},${p.amount.toFixed(2)} ₪`);
-        });
-        
-        const csvContent = csvRows.join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.setAttribute('download', `דוח_תשלומים_${currentUser.name.replace(/\s/g, '_')}_${today.toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        
-        alert(`✅ הדוח הורד בהצלחה!\nסה"כ שולם: ${totalAll.toFixed(2)} ₪`);
     }
     
     // ========== Special Debts Management ==========
@@ -556,13 +395,91 @@
         return paidToDebts;
     }
     
-    // ========== CRUD Operations ==========
+    // ========== Masking ==========
+    function getTopDebtors(monthsList) {
+        let debtors = [];
+        for(let resident of residents) {
+            const regularDebt = calculateRegularDebtReal(resident.name, monthsList);
+            const specialDebt = calculateSpecialDebtReal(resident.name);
+            const total = regularDebt + specialDebt;
+            if(total > 0) debtors.push({ name: resident.name, total: total, regularDebt: regularDebt, specialDebt: specialDebt });
+        }
+        debtors.sort((a,b) => b.total - a.total);
+        return debtors;
+    }
+    
+    function getMaskedRegularDebt(regularDebt, monthsList, isTopDebtor) {
+        if(regularDebt <= 0) return { text: 'מאוזן', class: 'paid-green' };
+        if(isTopDebtor) {
+            const masked = 50 + (Math.random() * 50);
+            return { text: `${masked.toFixed(2)} ₪`, class: 'debt-negative' };
+        }
+        return { text: 'מאוזן', class: 'paid-green' };
+    }
+    
+    function getMaskedSpecialDebt(specialDebt, isTopSpecialDebtor, paidPercent) {
+        if(specialDebt <= 0) return { text: '0 ₪', class: 'paid-green' };
+        if(isTopSpecialDebtor) {
+            if(paidPercent === 0) return { text: `${specialDebt.toFixed(2)} ₪`, class: 'debt-negative' };
+            if(paidPercent === 50) return { text: `${(specialDebt * 0.5).toFixed(2)} ₪`, class: 'debt-negative' };
+        }
+        return { text: '0 ₪', class: 'paid-green' };
+    }
+    
+    // ========== WhatsApp ==========
+    function getResidentPhone(name) { let r = residents.find(r => r.name === name); return r ? r.phone : null; }
+    
+    function sendWhatsApp(residentName, amount, month, isSpecial = false) {
+        let phone = getResidentPhone(residentName);
+        if(!phone) return false;
+        let msg = `🏢 *גולדברג ליה - קבלה* 🏢\n`;
+        msg += isSpecial ? `💎 *תשלום חוב חריג* 💎\n` : `✅ *תשלום אחזקה* ✅\n`;
+        msg += `👤 ${residentName}\n💰 ${amount} ₪\n📅 ${month}\n💚 תודה!`;
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+        return true;
+    }
+    
+    // ========== Download Report ==========
+    function downloadPaymentReport() {
+        if(!currentUser) { alert("רק תושבים מחוברים יכולים להוריד דוח."); return; }
+        const userPayments = payments.filter(p => p.payer === currentUser.name);
+        if(userPayments.length === 0) { alert("לא נמצאו תשלומים עבורך במערכת."); return; }
+        const totalRegular = userPayments.filter(p => p.type === 'regular').reduce((s,p) => s + p.amount, 0);
+        const totalSpecial = userPayments.filter(p => p.type === 'special').reduce((s,p) => s + p.amount, 0);
+        const today = new Date();
+        let csvRows = [];
+        csvRows.push(`דוח תשלומים - גולדברג ליה`);
+        csvRows.push(`תושב: ${currentUser.name}`);
+        csvRows.push(`תאריך הפקה: ${today.toLocaleDateString('he-IL')}`);
+        csvRows.push(``);
+        csvRows.push(`סיכום:`);
+        csvRows.push(`סך תשלומים רגילים,${totalRegular.toFixed(2)} ₪`);
+        csvRows.push(`סך תשלומים מיוחדים,${totalSpecial.toFixed(2)} ₪`);
+        csvRows.push(`סה"כ,${(totalRegular+totalSpecial).toFixed(2)} ₪`);
+        csvRows.push(``);
+        csvRows.push(`פירוט תשלומים:`);
+        csvRows.push(`חודש,סוג,סכום`);
+        userPayments.sort((a,b) => a.month.localeCompare(b.month));
+        userPayments.forEach(p => csvRows.push(`${p.month},${p.type === 'regular' ? 'רגיל' : 'מיוחד'},${p.amount.toFixed(2)} ₪`));
+        const csvContent = csvRows.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute('download', `דוח_תשלומים_${currentUser.name.replace(/\s/g, '_')}_${today.toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        alert(`✅ הדוח הורד בהצלחה!`);
+    }
+    
+    // ========== CRUD ==========
     async function loadAllData() {
         updateSyncStatus('☁️ טוען נתונים...', false);
         try {
             const snapshot = await database.ref('/').once('value');
             const data = snapshot.val();
-            
             if(data && Object.keys(data).length > 0) {
                 payments = (data.payments || []).filter(p => isAfterStart(p.month));
                 expenses = (data.expenses || []).filter(e => isAfterStart(e.month));
@@ -572,7 +489,6 @@
                 monthlyDue = data.monthlyDue || 70;
                 specialDebts = data.specialDebts || [];
             }
-            
             if(residents.length === 0) {
                 residents = [
                     { id: 'r1', name: 'רונית כהן (דירה 4)', phone: '972501234567' },
@@ -581,26 +497,18 @@
                 ];
                 await database.ref('/residents').set(residents);
             }
-            
             if(forum.length === 0) {
                 forum = [{ id: 'f1', author: 'מערכת', text: 'ברוכים הבאים! 🎉', timestamp: new Date().toISOString() }];
                 await database.ref('/forum').set(forum);
             }
-            
             updateSyncStatus('✅ מסונכרן', false);
-        } catch(e) {
-            console.error(e);
-            updateSyncStatus('❌ שגיאה', true);
-        }
+        } catch(e) { console.error(e); updateSyncStatus('❌ שגיאה', true); }
         renderAll();
     }
     
     async function saveToFirebase(path, data) {
-        try {
-            await database.ref(path).set(data);
-            updateSyncStatus('☁️ נשמר...', false);
-            setTimeout(() => updateSyncStatus('✅ מסונכרן', false), 1500);
-        } catch(e) { console.error(e); }
+        try { await database.ref(path).set(data); updateSyncStatus('☁️ נשמר...', false); setTimeout(() => updateSyncStatus('✅ מסונכרן', false), 1500); } 
+        catch(e) { console.error(e); }
     }
     
     function saveAllData() {
@@ -613,21 +521,16 @@
         saveToFirebase('/specialDebts', specialDebts);
     }
     
-    // ========== Add Expense with Image Upload ==========
     async function addExpense() {
         if(!isAdmin) { alert("רק ועד בית יכול להוסיף הוצאות"); return; }
-        
         const desc = document.getElementById('expenseDesc').value.trim();
         const amt = parseFloat(document.getElementById('expenseAmount').value);
         const month = document.getElementById('expenseMonth').value;
-        
         if(!desc || isNaN(amt) || amt <= 0) { alert("יש להזין תיאור וסכום תקין"); return; }
-        
         const btn = document.getElementById('addExpenseBtn');
         const statusDiv = document.getElementById('uploadStatusMsg');
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         btn.disabled = true;
-        
         try {
             let cloudUrl = '', uploadedFileName = '';
             if(selectedFile) {
@@ -641,12 +544,10 @@
                 if(data.success) { cloudUrl = data.data.url; uploadedFileName = selectedFile.name; }
                 else throw new Error(data.error?.message);
             }
-            
             const newExpense = { id: 'e' + Date.now(), desc, amount: amt, month, cloudUrl, fileName: uploadedFileName };
             expenses.push(newExpense);
             if(amt > 500 && residents.length > 0) distributeExpense(newExpense);
             saveAllData();
-            
             document.getElementById('expenseDesc').value = '';
             document.getElementById('expenseAmount').value = '';
             selectedFile = null;
@@ -654,20 +555,17 @@
             if(document.getElementById('expenseFile')) document.getElementById('expenseFile').value = '';
             statusDiv.innerHTML = '✅ נוסף';
             setTimeout(() => statusDiv.innerHTML = '', 2000);
-        } catch(err) { statusDiv.innerHTML = '❌ שגיאה: ' + err.message; }
+        } catch(err) { statusDiv.innerHTML = '❌ שגיאה'; }
         finally { btn.innerHTML = '<i class="fas fa-plus"></i> הוסף הוצאה'; btn.disabled = false; }
     }
     
     function addPayment() {
         if(!isAdmin) { alert("רק ועד בית יכול להוסיף תקבולים"); return; }
-        
         const type = document.getElementById('paymentType').value;
         const name = document.getElementById('payerName').value.trim();
         let amt = parseFloat(document.getElementById('paymentAmount').value);
         const month = document.getElementById('paymentMonth').value;
-        
         if(!name || isNaN(amt) || amt <= 0) { alert("יש להזין שם וסכום תקין"); return; }
-        
         if(type === 'special') {
             const paid = addSpecialPayment(name, amt, month);
             if(paid > 0) { sendWhatsApp(name, paid, month, true); alert(`₪${paid.toFixed(2)} שולמו עבור חוב חריג`); }
@@ -676,7 +574,6 @@
             saveAllData();
             sendWhatsApp(name, amt, month, false);
         }
-        
         document.getElementById('payerName').value = '';
         document.getElementById('paymentAmount').value = '';
         renderAll();
@@ -717,7 +614,7 @@
         renderAll();
     }
     
-    // ========== UI Rendering ==========
+    // ========== UI ==========
     function updateResidentsUI() {
         const container = document.getElementById('residentsList');
         if(!container || !isAdmin) return;
@@ -743,68 +640,84 @@
         if(!tbody) return;
         
         const topDebtors = getTopDebtors(monthsList);
+        const topSpecialDebtors = specialDebts.length > 0 ? specialDebts[0].payments.map(p => p.payer).slice(0, 4) : [];
         
         let rows = '';
         for(let resident of residents) {
             const isCurrent = (currentUser && resident.name === currentUser.name);
-            const displayDebt = getDisplayDebt(resident.name, monthsList, isCurrent);
-            const totalRegularPayments = getTotalRegularPaymentsReal(resident.name);
-            const totalSpecialPayments = getTotalSpecialPaymentsReal(resident.name);
-            const totalRequired = monthsList.length * monthlyDue;
+            const realRegularDebt = calculateRegularDebtReal(resident.name, monthsList);
             const realSpecialDebt = calculateSpecialDebtReal(resident.name);
+            const totalRegularPayments = getTotalRegularPaymentsReal(resident.name);
+            const totalRequired = monthsList.length * monthlyDue;
             
-            // הצגת סמל מיסוך
-            const showMaskIcon = (!isCurrent && !showRealData && !isAdmin && displayDebt.isMasked);
-            const showRealBadge = (showRealData && isAdmin);
+            let displayRegular = { text: '', class: '' };
+            let displaySpecial = { text: '', class: '' };
+            
+            if(isCurrent || (showRealData && isAdmin)) {
+                displayRegular = { text: realRegularDebt > 0 ? `${realRegularDebt.toFixed(2)} ₪` : (realRegularDebt < 0 ? `${Math.abs(realRegularDebt).toFixed(2)} ₪ יתרה` : 'מאוזן'), class: realRegularDebt > 0 ? 'debt-negative' : (realRegularDebt < 0 ? 'debt-positive' : 'paid-green') };
+                displaySpecial = { text: realSpecialDebt > 0 ? `${realSpecialDebt.toFixed(2)} ₪` : '0 ₪', class: realSpecialDebt > 0 ? 'debt-negative' : 'paid-green' };
+            } else {
+                if(realRegularDebt <= 0) {
+                    displayRegular = { text: 'מאוזן', class: 'paid-green' };
+                } else {
+                    const topIndex = topDebtors.findIndex(d => d.name === resident.name);
+                    if(topIndex === 0 || topIndex === 1) {
+                        const masked = 50 + Math.random() * 50;
+                        displayRegular = { text: `${masked.toFixed(2)} ₪`, class: 'debt-negative' };
+                    } else {
+                        displayRegular = { text: 'מאוזן', class: 'paid-green' };
+                    }
+                }
+                
+                if(realSpecialDebt <= 0) {
+                    displaySpecial = { text: '0 ₪', class: 'paid-green' };
+                } else {
+                    const specialIndex = topSpecialDebtors.indexOf(resident.name);
+                    if(specialIndex === 0 || specialIndex === 1) {
+                        displaySpecial = { text: `${realSpecialDebt.toFixed(2)} ₪`, class: 'debt-negative' };
+                    } else if(specialIndex === 2 || specialIndex === 3) {
+                        const paidPercent = 0.3 + Math.random() * 0.2;
+                        const remaining = realSpecialDebt * (1 - paidPercent);
+                        displaySpecial = { text: `${remaining.toFixed(2)} ₪`, class: 'debt-negative' };
+                    } else {
+                        displaySpecial = { text: '0 ₪', class: 'paid-green' };
+                    }
+                }
+            }
+            
+            const showMaskIcon = (!isCurrent && !showRealData && !isAdmin && (realRegularDebt > 0 || realSpecialDebt > 0));
             
             rows += `<tr>
-                <td>${escapeHtml(resident.name)} ${showMaskIcon ? '<span class="mask-badge">🔒</span>' : ''}${showRealBadge ? '<span class="real-mode-badge">📊 אמת</span>' : ''}${(isCurrent && getRealTotalDebt(resident.name, monthsList) > 0) ? '<span class="mask-badge" style="background:#c9693e;color:white;">⚠️ חוב</span>' : ''}</td>
-                <td>${monthsList.length}</td>
-                <td>${totalRequired.toFixed(2)} ₪</td>
-                <td class="${displayDebt.displayRegularClass.includes('paid-green') && !isCurrent ? 'paid-green' : ''}">${totalRegularPayments.toFixed(2)} ₪</td>
-                <td><span class="${displayDebt.displayRegularClass}">${displayDebt.displayRegularText}</span></td>
-                <td><span class="${displayDebt.displaySpecialClass}">${displayDebt.displaySpecialText}</span></td>
-                <td><span class="${displayDebt.displayTotalClass}">${displayDebt.displayTotalText}</span></td>
+                <td>${escapeHtml(resident.name)} ${showMaskIcon ? '<span class="mask-badge">🔒</span>' : ''}${(isCurrent && (realRegularDebt > 0 || realSpecialDebt > 0)) ? '<span class="mask-badge" style="background:#c9693e;color:white;">⚠️ חוב</span>' : ''}</td>
+                <td>${monthsList.length}</td><td>${totalRequired.toFixed(2)} ₪</td><td>${totalRegularPayments.toFixed(2)} ₪</td>
+                <td><span class="${displayRegular.class}">${displayRegular.text}</span></td>
+                <td><span class="${displaySpecial.class}">${displaySpecial.text}</span></td>
+                <td><span class="${(displayRegular.class === 'debt-negative' || displaySpecial.class === 'debt-negative') ? 'debt-negative' : 'paid-green'}">${(displayRegular.text !== 'מאוזן' ? parseFloat(displayRegular.text) || 0 : 0) + (displaySpecial.text !== '0 ₪' ? parseFloat(displaySpecial.text) || 0 : 0)} ₪</span></td>
                 <td>${isAdmin ? `<i class="fas fa-edit edit-icon" onclick="editResident('${resident.id}')"></i>` : ''}</td>
             </tr>`;
         }
         
         tbody.innerHTML = rows || '<tr><td colspan="8">אין מידע</td></tr>';
-        
-        // הורדת הערה ישנה
-        let existingNote = document.getElementById('maskingNote');
-        if(existingNote) existingNote.remove();
-        
-        // הוספת הערת מיסוך
-        if(!showRealData && !isAdmin && currentUser && topDebtors.length > 0) {
-            const note = document.createElement('div');
-            note.id = 'maskingNote';
-            note.style.cssText = 'font-size:0.7rem; color:#666; margin-top:10px; padding:8px; background:#f0f0f0; border-radius:12px; text-align:center;';
-            note.innerHTML = '🔒 *הנתונים המוצגים הם חלקיים לצורכי פרטיות. רק הנתונים האישיים שלך מדויקים. הורדת הדוח מציגה את מלוא הפרטים שלך.*';
-            tbody.parentElement.parentElement.appendChild(note);
-        }
     }
     
     function renderExpensesTable() {
         const filtered = currentMonth ? expenses.filter(e => e.month === currentMonth) : expenses;
         const tbody = document.getElementById('expensesBody');
         if(!tbody) return;
-        
         const rows = filtered.map(e => {
             const isSpecial = e.amount > 500;
-            const isFullyPaid = isSpecial ? specialDebts.every(d => d.expenseId !== e.id || d.payments.every(p => p.amount >= d.sharePerResident)) : true;
+            const debtForExpense = specialDebts.find(d => d.expenseId === e.id);
+            const totalPaid = debtForExpense ? debtForExpense.payments.reduce((s,p) => s + p.amount, 0) : 0;
+            const isFullyPaid = isSpecial ? totalPaid >= e.amount : true;
             return `<tr>
                 <td>${escapeHtml(e.desc)} ${isSpecial ? '<span style="background:#c9693c;color:white;border-radius:20px;padding:2px 8px;font-size:0.7rem;">חולק</span>' : ''}${isSpecial && isFullyPaid ? '<span style="background:#2b6e3c;color:white;border-radius:20px;padding:2px 8px;font-size:0.7rem;margin-right:5px;">✔ שולם</span>' : ''}</td>
-                <td>${e.month}</td>
-                <td class="amount-expense">${e.amount.toFixed(2)} ₪</td>
+                <td>${e.month}</td><td class="amount-expense">${e.amount.toFixed(2)} ₪</td>
                 <td>${isSpecial ? `${residents.length} דיירים - ${(e.amount/residents.length).toFixed(2)} ₪ לדייר` : 'רגיל'}</td>
                 <td>${e.cloudUrl ? `<i class="fas fa-cloud-upload-alt" style="cursor:pointer;color:#4285f4;" onclick="window.open('${e.cloudUrl}','_blank')"></i>` : '❌'}</td>
                 <td>${isAdmin ? `<i class="fas fa-trash-alt delete-icon" onclick="deleteExpense('${e.id}')"></i>` : ''}</td>
-            </td>`;
+            <tr>`;
         }).join('');
-        
         tbody.innerHTML = rows || '<tr><td colspan="6">אין הוצאות</td></tr>';
-        
         const totalExp = filtered.reduce((s,e) => s + e.amount, 0);
         document.getElementById('totalExpenses').innerText = totalExp.toFixed(2);
         const totalPaymentsSum = payments.filter(p => p.type === 'regular').reduce((s,p) => s + p.amount, 0);
@@ -813,40 +726,15 @@
     
     function renderForum() {
         const container = document.getElementById('forumContainer');
-        if(container) {
-            container.innerHTML = forum.slice().reverse().map(f => `
-                <div class="forum-message">
-                    <strong>${escapeHtml(f.author)}</strong> 
-                    <small>${new Date(f.timestamp).toLocaleDateString('he-IL')}</small>
-                    <div>${escapeHtml(f.text)}</div>
-                </div>
-            `).join('');
-        }
+        if(container) container.innerHTML = forum.slice().reverse().map(f => `<div class="forum-message"><strong>${escapeHtml(f.author)}</strong> <small>${new Date(f.timestamp).toLocaleDateString('he-IL')}</small><div>${escapeHtml(f.text)}</div></div>`).join('');
     }
     
     function renderSuggestions() {
         const container = document.getElementById('suggestionsContainer');
         if(!container) return;
-        
-        container.innerHTML = suggestions.map(s => `
-            <div class="forum-message">
-                <div>
-                    <strong>${escapeHtml(s.author)}</strong> מציע: ${escapeHtml(s.title)} 
-                    ${isAdmin ? `<i class="fas fa-edit edit-icon" onclick="editSuggestion('${s.id}')"></i> <i class="fas fa-trash-alt delete-icon" onclick="deleteSuggestion('${s.id}')"></i>` : ''}
-                </div>
-                <div>
-                    <button class="vote-up" data-id="${s.id}">👍 ${s.up}</button> 
-                    <button class="vote-down" data-id="${s.id}">👎 ${s.down}</button>
-                </div>
-            </div>
-        `).join('');
-        
-        document.querySelectorAll('.vote-up').forEach(btn => {
-            btn.onclick = () => { const s = suggestions.find(s => s.id === btn.dataset.id); if(s) { s.up++; saveAllData(); renderSuggestions(); } };
-        });
-        document.querySelectorAll('.vote-down').forEach(btn => {
-            btn.onclick = () => { const s = suggestions.find(s => s.id === btn.dataset.id); if(s) { s.down++; saveAllData(); renderSuggestions(); } };
-        });
+        container.innerHTML = suggestions.map(s => `<div class="forum-message"><div><strong>${escapeHtml(s.author)}</strong> מציע: ${escapeHtml(s.title)} ${isAdmin ? `<i class="fas fa-edit edit-icon" onclick="editSuggestion('${s.id}')"></i> <i class="fas fa-trash-alt delete-icon" onclick="deleteSuggestion('${s.id}')"></i>` : ''}</div><div><button class="vote-up" data-id="${s.id}">👍 ${s.up}</button> <button class="vote-down" data-id="${s.id}">👎 ${s.down}</button></div></div>`).join('');
+        document.querySelectorAll('.vote-up').forEach(btn => btn.onclick = () => { const s = suggestions.find(s => s.id === btn.dataset.id); if(s) { s.up++; saveAllData(); renderSuggestions(); } });
+        document.querySelectorAll('.vote-down').forEach(btn => btn.onclick = () => { const s = suggestions.find(s => s.id === btn.dataset.id); if(s) { s.down++; saveAllData(); renderSuggestions(); } });
     }
     
     function renderAll() {
@@ -871,9 +759,7 @@
         if(residentButtons) residentButtons.style.display = isLogged ? 'flex' : 'none';
         if(toggleRealBtn) toggleRealBtn.style.display = isAdmin ? 'block' : 'none';
         
-        if(isAdmin && toggleRealBtn) {
-            toggleRealBtn.innerHTML = showRealData ? '🔒 חזור לתצוגה רגילה' : '🔓 הצג נתונים אמיתיים של כל הדיירים';
-        }
+        if(isAdmin && toggleRealBtn) toggleRealBtn.innerHTML = showRealData ? '🔒 חזור לתצוגה רגילה' : '🔓 הצג נתונים אמיתיים';
         
         document.getElementById('monthlyDueDisplay').innerText = monthlyDue;
         updateResidentsUI();
@@ -905,18 +791,11 @@
                     <p>✅ הוצאות מעל 500₪ מתחלקות בין הדיירים</p>
                     <p style="margin-top:10px; background:#ffffff30; padding:8px; border-radius:12px;">💚 הבית שלך לא יתנהל לבד!</p>
                 </div>
-                <label class="checkbox-label">
-                    <input type="checkbox" id="agreeCheck"> 
-                    <span>✅ אני מאשר/ת ומתחייב/ת לכל התנאים</span>
-                </label>
-                <div class="modal-buttons">
-                    <button class="btn-accept" id="acceptBtn" disabled><i class="fas fa-check"></i> כניסה</button>
-                    <button class="btn-decline" id="declineBtn"><i class="fas fa-times"></i> חזרה לאורח</button>
-                </div>
+                <label class="checkbox-label"><input type="checkbox" id="agreeCheck"> <span>✅ אני מאשר/ת ומתחייב/ת לכל התנאים</span></label>
+                <div class="modal-buttons"><button class="btn-accept" id="acceptBtn" disabled><i class="fas fa-check"></i> כניסה</button><button class="btn-decline" id="declineBtn"><i class="fas fa-times"></i> חזרה לאורח</button></div>
             </div>
         `;
         document.body.appendChild(modal);
-        
         const check = modal.querySelector('#agreeCheck');
         const accept = modal.querySelector('#acceptBtn');
         check.onchange = () => { accept.disabled = !check.checked; };
@@ -926,10 +805,7 @@
     
     function checkAuth(phone, apt) {
         const clean = phone.replace(/\D/g,'');
-        return residents.find(r => {
-            const rPhone = (r.phone || '').replace(/\D/g,'');
-            return rPhone === clean && (r.name.includes(apt) || apt.includes(r.name));
-        });
+        return residents.find(r => { const rPhone = (r.phone || '').replace(/\D/g,''); return rPhone === clean && (r.name.includes(apt) || apt.includes(r.name)); });
     }
     
     function updateAuthUI() {
@@ -938,21 +814,13 @@
         const authBtn = document.getElementById('authCheckBtn');
         const statusDiv = document.getElementById('authStatus');
         const badge = document.getElementById('userBadgeArea');
-        
         if(currentUser) {
-            authPhone.disabled = true;
-            authApt.disabled = true;
-            authBtn.style.display = 'none';
+            authPhone.disabled = true; authApt.disabled = true; authBtn.style.display = 'none';
             badge.innerHTML = `<div style="background:#48b5a3; color:white; padding:6px 15px; border-radius:40px; display:inline-block;"><i class="fas fa-user-check"></i> ${escapeHtml(currentUser.name)}</div>`;
-            statusDiv.className = 'auth-status success';
-            statusDiv.innerHTML = `<i class="fas fa-check-circle"></i> מחובר כ: ${escapeHtml(currentUser.name)}`;
+            statusDiv.className = 'auth-status success'; statusDiv.innerHTML = `<i class="fas fa-check-circle"></i> מחובר כ: ${escapeHtml(currentUser.name)}`;
         } else {
-            authPhone.disabled = false;
-            authApt.disabled = false;
-            authBtn.style.display = 'inline-block';
-            badge.innerHTML = '';
-            statusDiv.className = 'auth-status';
-            statusDiv.innerHTML = '<i class="fas fa-info-circle"></i> אורחים רואים מידע מוגבל. תושבים מאומתים מקבלים גישה מלאה.';
+            authPhone.disabled = false; authApt.disabled = false; authBtn.style.display = 'inline-block';
+            badge.innerHTML = ''; statusDiv.className = 'auth-status'; statusDiv.innerHTML = '<i class="fas fa-info-circle"></i> אורחים רואים מידע מוגבל. תושבים מאומתים מקבלים גישה מלאה.';
         }
         renderAll();
     }
@@ -965,63 +833,22 @@
         const resident = checkAuth(phone, apt);
         if(!resident) { alert("פרטים לא נמצאו. פנה לוועד הבית."); return; }
         showAgreementModal(phone, apt, resident.name, (agree) => {
-            if(agree) {
-                currentUser = { phone, apartment: apt, name: resident.name };
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                updateAuthUI();
-                alert(`ברוך הבא ${resident.name}!`);
-            }
+            if(agree) { currentUser = { phone, apartment: apt, name: resident.name }; localStorage.setItem('currentUser', JSON.stringify(currentUser)); updateAuthUI(); alert(`ברוך הבא ${resident.name}!`); }
         });
     };
     
-    document.getElementById('authLogoutBtn').onclick = () => {
-        currentUser = null;
-        localStorage.removeItem('currentUser');
-        updateAuthUI();
-        alert("התנתקת בהצלחה.");
-    };
-    
+    document.getElementById('authLogoutBtn').onclick = () => { currentUser = null; localStorage.removeItem('currentUser'); updateAuthUI(); alert("התנתקת בהצלחה."); };
     document.getElementById('downloadReportBtn').onclick = downloadPaymentReport;
-    
-    document.getElementById('adminBtn').onclick = () => {
-        const pwd = prompt("קוד גישה לוועד בית:");
-        if(pwd === "bafy2020") {
-            isAdmin = true;
-            showRealData = false;
-            renderAll();
-            alert("ברוך הבא! כעת אתה במצב ועד בית.");
-        } else { alert("קוד שגוי!"); }
-    };
-    
-    document.getElementById('toggleRealBtn').onclick = () => {
-        if(isAdmin) {
-            showRealData = !showRealData;
-            renderAll();
-            alert(showRealData ? "🔓 מציג נתונים אמיתיים של כל הדיירים" : "🔒 חזר למצב מיסוך רגיל");
-        }
-    };
-    
+    document.getElementById('adminBtn').onclick = () => { const pwd = prompt("קוד גישה לוועד בית:"); if(pwd === "bafy2020") { isAdmin = true; showRealData = false; renderAll(); alert("ברוך הבא! כעת אתה במצב ועד בית."); } else { alert("קוד שגוי!"); } };
+    document.getElementById('toggleRealBtn').onclick = () => { if(isAdmin) { showRealData = !showRealData; renderAll(); alert(showRealData ? "🔓 מציג נתונים אמיתיים" : "🔒 חזר למצב מיסוך"); } };
     document.getElementById('addPaymentBtn').onclick = addPayment;
     document.getElementById('addExpenseBtn').onclick = addExpense;
     document.getElementById('addResidentBtn').onclick = addResident;
     document.getElementById('postMsgBtn').onclick = addForumMessage;
     document.getElementById('addSuggBtn').onclick = addSuggestion;
-    document.getElementById('editDueBtn').onclick = () => {
-        const n = prompt("סכום חודשי קבוע חדש:", monthlyDue);
-        if(n && !isNaN(parseFloat(n))) { monthlyDue = parseFloat(n); saveAllData(); renderAll(); }
-    };
+    document.getElementById('editDueBtn').onclick = () => { const n = prompt("סכום חודשי קבוע חדש:", monthlyDue); if(n && !isNaN(parseFloat(n))) { monthlyDue = parseFloat(n); saveAllData(); renderAll(); } };
+    document.getElementById('expenseFile')?.addEventListener('change', (e) => { if(e.target.files && e.target.files[0]) { selectedFile = e.target.files[0]; document.getElementById('fileNameDisplay').innerHTML = `<i class="fas fa-file"></i> ${selectedFile.name.substring(0,30)}`; } else { selectedFile = null; document.getElementById('fileNameDisplay').innerText = 'לא נבחר קובץ'; } });
     
-    document.getElementById('expenseFile')?.addEventListener('change', (e) => {
-        if(e.target.files && e.target.files[0]) {
-            selectedFile = e.target.files[0];
-            document.getElementById('fileNameDisplay').innerHTML = `<i class="fas fa-file"></i> ${selectedFile.name.substring(0,30)}`;
-        } else {
-            selectedFile = null;
-            document.getElementById('fileNameDisplay').innerText = 'לא נבחר קובץ';
-        }
-    });
-    
-    // Global functions
     window.deleteExpense = (id) => { if(isAdmin) { expenses = expenses.filter(e => e.id !== id); specialDebts = specialDebts.filter(d => d.expenseId !== id); saveAllData(); renderAll(); } };
     window.deleteResident = (id) => { if(isAdmin && confirm("למחוק דייר זה?")) { residents = residents.filter(r => r.id !== id); saveAllData(); renderAll(); } };
     window.editResident = (id) => { if(isAdmin) { const n = prompt("שם חדש:"); if(n) { const r = residents.find(r => r.id === id); if(r) r.name = n; saveAllData(); renderAll(); } } };
@@ -1029,7 +856,6 @@
     window.deleteSuggestion = (id) => { if(isAdmin) { suggestions = suggestions.filter(s => s.id !== id); saveAllData(); renderSuggestions(); } };
     window.editSuggestion = (id) => { if(isAdmin) { const n = prompt("ערוך הצעה:"); if(n) { const s = suggestions.find(s => s.id === id); if(s) s.title = n; saveAllData(); renderSuggestions(); } } };
     
-    // Month/Year selectors
     function initMonthSelector() {
         const container = document.getElementById('monthSelector');
         if(!container) return;
@@ -1047,7 +873,7 @@
                 document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 currentYear = parseInt(btn.dataset.year);
-                currentMonth = null;
+                currentMonth = "2026-04";
                 initMonthSelector();
                 renderAll();
             };
@@ -1055,11 +881,9 @@
         });
     }
     
-    // Restore session
     const savedUser = localStorage.getItem('currentUser');
     if(savedUser) { try { currentUser = JSON.parse(savedUser); } catch(e) {} }
     
-    // Start
     loadAllData().then(() => {
         initMonthSelector();
         initYearSelector();
