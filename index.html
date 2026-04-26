@@ -52,7 +52,6 @@
         }
         .toggle-real-btn:hover { background: #e08e3a; }
         
-        /* מודל גדול יותר פי 2 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
@@ -72,7 +71,6 @@
             font-size: 1.1rem; line-height: 1.6;
             max-height: 500px; overflow-y: auto;
         }
-        .modal-agreement .agreement-text p { margin: 12px 0; }
         .modal-buttons { display: flex; gap: 20px; justify-content: center; margin-top: 20px; }
         .modal-buttons button { padding: 16px 32px; font-size: 1.1rem; border-radius: 60px; }
         .btn-accept { background: #ffd966; color: #2c5a4a; }
@@ -223,7 +221,7 @@
                 <table style="width:100%">
                     <thead><tr><th>תיאור</th><th>חודש</th><th>סכום</th><th>חלוקה</th><th>קבלה</th><th></th></tr></thead>
                     <tbody id="expensesBody"></tbody>
-                </table>
+                趟
             </div>
             <div class="flex-between" style="margin-top:12px;">
                 <span>💸 סה"כ הוצאות: <strong id="totalExpenses">0</strong> ₪</span>
@@ -311,7 +309,7 @@
     function isAfterStart(dateStr) { if(!dateStr) return false; let [y,m] = dateStr.split('-'); return new Date(parseInt(y), parseInt(m)-1) >= START_DATE; }
     function updateSyncStatus(text, isError) { let el = document.getElementById('syncStatus'); if(el) { el.innerHTML = text; el.style.background = isError ? 'rgba(220,50,50,0.8)' : 'rgba(0,0,0,0.7)'; } }
     
-    // ========== Months List (from Jan 2026 to current selected month) ==========
+    // ========== Months List ==========
     function getMonthsList() {
         let months = [];
         let year = START_DATE.getFullYear();
@@ -402,25 +400,20 @@
         return paidToDebts;
     }
     
-    // ========== Masking - Random debtors from real debtors ==========
-    function getRandomMaskedDebtors(monthsList) {
-        // Get all real debtors
-        let realDebtors = [];
+    // ========== Masking - Random special debtors ==========
+    function getRandomSpecialDebtors() {
+        let realSpecialDebtors = [];
         for(let resident of residents) {
-            const totalDebt = getRealTotalDebt(resident.name, monthsList);
-            if(totalDebt > 0) {
-                realDebtors.push(resident.name);
+            const specialDebt = calculateSpecialDebtReal(resident.name);
+            if(specialDebt > 0) {
+                realSpecialDebtors.push(resident.name);
             }
         }
-        
-        // Shuffle array
-        for(let i = realDebtors.length - 1; i > 0; i--) {
+        for(let i = realSpecialDebtors.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [realDebtors[i], realDebtors[j]] = [realDebtors[j], realDebtors[i]];
+            [realSpecialDebtors[i], realSpecialDebtors[j]] = [realSpecialDebtors[j], realSpecialDebtors[i]];
         }
-        
-        // Return up to 3 random debtors
-        return realDebtors.slice(0, 3);
+        return realSpecialDebtors.slice(0, 3);
     }
     
     // ========== WhatsApp ==========
@@ -636,8 +629,7 @@
         const tbody = document.getElementById('paymentsBody');
         if(!tbody) return;
         
-        // Get random masked debtors (up to 3 random from real debtors)
-        const maskedDebtors = getRandomMaskedDebtors(monthsList);
+        const maskedSpecialDebtors = getRandomSpecialDebtors();
         
         let rows = '';
         for(let resident of residents) {
@@ -654,27 +646,25 @@
             let displayTotalText = '';
             let displayTotalClass = '';
             
-            if(isCurrent || (showRealData && isAdmin)) {
-                // Real data mode
+            const isRealMode = (showRealData && isAdmin) || isCurrent;
+            
+            if(isRealMode) {
                 displayRegularText = realRegularDebt > 0 ? `${realRegularDebt.toFixed(2)} ₪` : (realRegularDebt < 0 ? `${Math.abs(realRegularDebt).toFixed(2)} ₪ יתרה` : 'מאוזן');
                 displayRegularClass = realRegularDebt > 0 ? 'debt-negative' : (realRegularDebt < 0 ? 'debt-positive' : 'paid-green');
                 displaySpecialText = realSpecialDebt > 0 ? `${realSpecialDebt.toFixed(2)} ₪` : '0 ₪';
                 displaySpecialClass = realSpecialDebt > 0 ? 'debt-negative' : 'paid-green';
-                displayTotalText = (realRegularDebt + realSpecialDebt) > 0 ? `${(realRegularDebt + realSpecialDebt).toFixed(2)} ₪` : '0 ₪';
-                displayTotalClass = (realRegularDebt + realSpecialDebt) > 0 ? 'debt-negative' : 'paid-green';
+                const totalDebt = realRegularDebt + realSpecialDebt;
+                displayTotalText = totalDebt > 0 ? `${totalDebt.toFixed(2)} ₪` : (totalDebt < 0 ? `${Math.abs(totalDebt).toFixed(2)} ₪ יתרה` : '0 ₪');
+                displayTotalClass = totalDebt > 0 ? 'debt-negative' : (totalDebt < 0 ? 'debt-positive' : 'paid-green');
             } else {
-                // Masking mode
-                // Regular debt - show real amount (not masked)
                 displayRegularText = realRegularDebt > 0 ? `${realRegularDebt.toFixed(2)} ₪` : (realRegularDebt < 0 ? `${Math.abs(realRegularDebt).toFixed(2)} ₪ יתרה` : 'מאוזן');
                 displayRegularClass = realRegularDebt > 0 ? 'debt-negative' : (realRegularDebt < 0 ? 'debt-positive' : 'paid-green');
                 
-                // Special debt - mask for random debtors
-                const isMaskedDebtor = maskedDebtors.includes(resident.name);
+                const isMaskedSpecialDebtor = maskedSpecialDebtors.includes(resident.name);
                 if(realSpecialDebt <= 0) {
                     displaySpecialText = '0 ₪';
                     displaySpecialClass = 'paid-green';
-                } else if(isMaskedDebtor) {
-                    // Show masked amount (50-100 shekels) for random debtors
+                } else if(isMaskedSpecialDebtor) {
                     const maskedAmount = 50 + Math.random() * 50;
                     displaySpecialText = `${maskedAmount.toFixed(2)} ₪`;
                     displaySpecialClass = 'debt-negative';
@@ -683,15 +673,15 @@
                     displaySpecialClass = 'paid-green';
                 }
                 
-                displayTotalText = (realRegularDebt > 0 ? realRegularDebt : 0) + (displaySpecialText !== '0 ₪' ? parseFloat(displaySpecialText) || 0 : 0);
-                displayTotalText = displayTotalText > 0 ? `${displayTotalText.toFixed(2)} ₪` : (realRegularDebt < 0 ? `${Math.abs(realRegularDebt).toFixed(2)} ₪ יתרה` : '0 ₪');
-                displayTotalClass = (displayRegularClass === 'debt-negative' || displaySpecialClass === 'debt-negative') ? 'debt-negative' : 'paid-green';
+                const totalDebt = (realRegularDebt > 0 ? realRegularDebt : 0) + (displaySpecialText !== '0 ₪' ? parseFloat(displaySpecialText) || 0 : 0);
+                displayTotalText = totalDebt > 0 ? `${totalDebt.toFixed(2)} ₪` : (realRegularDebt < 0 ? `${Math.abs(realRegularDebt).toFixed(2)} ₪ יתרה` : '0 ₪');
+                displayTotalClass = totalDebt > 0 ? 'debt-negative' : (realRegularDebt < 0 ? 'debt-positive' : 'paid-green');
             }
             
             const showMaskIcon = (!isCurrent && !showRealData && !isAdmin && (realRegularDebt > 0 || realSpecialDebt > 0));
             
-            rows += `<tr>
-                <td>${escapeHtml(resident.name)} ${showMaskIcon ? '<span class="mask-badge">🔒</span>' : ''}${(isCurrent && (realRegularDebt > 0 || realSpecialDebt > 0)) ? '<span class="mask-badge" style="background:#c9693e;color:white;">⚠️ חוב</span>' : ''}</td>
+            rows += `</table>
+                <td>${escapeHtml(resident.name)} ${showMaskIcon ? '<span class="mask-badge">🔒</span>' : ''}${(isCurrent && (realRegularDebt > 0 || realSpecialDebt > 0)) ? '<span class="mask-badge" style="background:#c9693e;color:white;">⚠️ חוב</span>' : ''}${(showRealData && isAdmin) ? '<span class="mask-badge" style="background:#2c7a6e;color:white;">📊 אמת</span>' : ''}</td>
                 <td>${monthsList.length}</td><td>${totalRequired.toFixed(2)} ₪</td><td>${totalRegularPayments.toFixed(2)} ₪</td>
                 <td><span class="${displayRegularClass}">${displayRegularText}</span></td>
                 <td><span class="${displaySpecialClass}">${displaySpecialText}</span></td>
@@ -702,12 +692,10 @@
         
         tbody.innerHTML = rows || '<tr><td colspan="8">אין מידע</td></tr>';
         
-        // Remove old note if exists
         let existingNote = document.getElementById('maskingNote');
         if(existingNote) existingNote.remove();
         
-        // Add masking note for non-admin users
-        if(!showRealData && !isAdmin && currentUser && maskedDebtors.length > 0) {
+        if(!showRealData && !isAdmin && currentUser) {
             const note = document.createElement('div');
             note.id = 'maskingNote';
             note.style.cssText = 'font-size:0.7rem; color:#666; margin-top:10px; padding:8px; background:#f0f0f0; border-radius:12px; text-align:center;';
@@ -787,7 +775,7 @@
             renderSuggestions();
         } else {
             const paymentsBody = document.getElementById('paymentsBody');
-            if(paymentsBody) paymentsBody.innerHTML = '<table><td colspan="8">🔒 נדרשת הזדהות תושב</td></tr>';
+            if(paymentsBody) paymentsBody.innerHTML = '<tr><td colspan="8">🔒 נדרשת הזדהות תושב</td></tr>';
             const expensesBody = document.getElementById('expensesBody');
             if(expensesBody) expensesBody.innerHTML = '<tr><td colspan="6">🔒 נדרשת הזדהות תושב</td></tr>';
         }
@@ -805,7 +793,7 @@
                     <p>✅ אחריות קהילתית – השתתפות פעילה היא חובה</p>
                     <p>✅ תשלום חודשי קבוע – אי תשלום פוגע בכולם</p>
                     <p>✅ הוצאות מעל 500₪ מתחלקות בין הדיירים</p>
-                    <p>✅ נתונים אישיים שלך נשמרים בסודיות מלאה</p>
+                    <p>✅ הנתונים האישיים שלך נשמרים בסודיות</p>
                     <p style="margin-top:20px; background:#ffffff30; padding:15px; border-radius:20px;">💚 <strong>הבית שלך לא יתנהל לבד!</strong><br>תושב שלא משתתף - לא מבקר. בוא להיות חלק מההצלחה!</p>
                 </div>
                 <label class="checkbox-label"><input type="checkbox" id="agreeCheck"> <span>✅ אני קראתי, הבנתי ומתחייב לכל התנאים</span></label>
