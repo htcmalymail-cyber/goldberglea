@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>הכי טוב בשכונה - מערכת ניהול בית משותף | התחברות דיירים + הערות</title>
+    <title>הכי טוב בשכונה - ניהול בית משותף | התחברות דיירים מלאה</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
@@ -89,10 +89,10 @@
         input, textarea, select { font-family: 'Inter', sans-serif; border-radius: 60px; border: 1px solid #cce2da; padding: 8px 14px; background: #ffffffdd; }
         textarea { border-radius: 24px; }
         
-        /* מודל התחברות והסכמה */
+        /* מודל התחברות */
         .login-welcome-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 30, 30, 0.9); backdrop-filter: blur(8px);
+            background: rgba(0, 30, 30, 0.95); backdrop-filter: blur(8px);
             display: flex; align-items: center; justify-content: center; z-index: 10000;
         }
         .login-card {
@@ -108,6 +108,7 @@
         .agree-check { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 16px 0; }
         .resident-badge { background: #2b9c7c20; padding: 6px 16px; border-radius: 40px; font-size: 0.8rem; display: inline-block; margin-right: 12px; }
         .comment-text { font-size: 0.75rem; color: #5f8b7e; margin-top: 4px; display: block; }
+        .demo-info { background: #e8f0fe; border-radius: 28px; padding: 12px; margin: 12px 0; font-size: 0.8rem; text-align: right; }
     </style>
 </head>
 <body>
@@ -130,7 +131,6 @@
 
     <div class="stats-grid" id="statsGrid"></div>
 
-    <!-- טבלת תקבולים לפי דירה -->
     <div class="card">
         <div class="flex-between">
             <h3><i class="fas fa-hand-holding-usd"></i> תקבולים חודשיים וקרן חירום – לפי דירה</h3>
@@ -148,7 +148,6 @@
         <div class="info-note">* סכום חודשי קבוע: <strong id="monthlyDueLabel">70 ₪</strong> | קרן חירום: <strong id="emergencyDueLabel">30 ₪</strong> לחודש</div>
     </div>
 
-    <!-- כפתורים לניהול מסדי נתונים -->
     <div class="card" style="background: #e8f3f0;">
         <div class="flex-between">
             <div><i class="fas fa-database"></i> <strong>📊 הוצאות רגילות, הוצאות חירום והכנסות</strong> – צפייה, הורדת CSV, הערות</div>
@@ -159,7 +158,6 @@
         </div>
     </div>
 
-    <!-- פורום והצעות -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 28px;">
         <div class="card"><h3><i class="fas fa-comments"></i> פורום שכונתי</h3>
             <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
@@ -215,7 +213,14 @@
         <i class="fas fa-building" style="font-size: 3rem; color: #2b9c7c;"></i>
         <h2>ברוכים הבאים!</h2>
         <p>התחברות למערכת ניהול הבית המשותף</p>
-        <input type="tel" id="loginPhone" placeholder="מספר טלפון (לדוגמה: 972501234567)" dir="ltr">
+        <div class="demo-info">
+            <strong>📱 דוגמאות להתחברות:</strong><br>
+            דירה 1 → טלפון: 972501234501<br>
+            דירה 2 → טלפון: 972501234502<br>
+            דירה 3 → טלפון: 972501234503<br>
+            (וכל דירה i → 972501234500+i)
+        </div>
+        <input type="tel" id="loginPhone" placeholder="מספר טלפון (לדוגמה: 972501234501)" dir="ltr">
         <input type="number" id="loginApartment" placeholder="מספר דירה (1-16)">
         <div class="terms-box">
             <strong>תנאי השימוש והסכמה:</strong><br>
@@ -230,6 +235,8 @@
         </div>
         <button id="loginBtn" class="btn" style="width:100%;">🔐 כניסה למערכת</button>
         <div id="loginError" style="color: red; margin-top: 12px; font-size: 0.8rem;"></div>
+        <hr style="margin: 16px 0;">
+        <button id="adminQuickBtn" style="background:#6c757d; width:100%;">👑 כניסת ועד בית (קוד סודי)</button>
     </div>
 </div>
 
@@ -257,7 +264,7 @@
     let currentYear = 2026;
     let currentMonthFilter = 'all';
     let isAdmin = false;
-    let loggedInUser = null; // { name, apartment, phone }
+    let loggedInUser = null;
     let currentModalType = "regular";
     let selectedFile = null;
     let isLoading = true;
@@ -306,17 +313,33 @@
         try {
             const snap = await database.ref('/').once('value');
             const data = snap.val();
-            if(data) {
+            if(data && data.residents && data.residents.length) {
                 regularExpenses = data.regularExpenses || [];
                 emergencyExpenses = data.emergencyExpenses || [];
-                residents = data.residents || [];
+                residents = data.residents;
                 monthlyDue = data.monthlyDue || 70;
                 emergencyMonthlyDue = data.emergencyMonthlyDue || 30;
             } else {
+                // יצירת 16 דיירים עם מספרי טלפון אמיתיים לצורך בדיקה
                 residents = [];
-                for(let i=1;i<=16;i++) residents.push({ id: `d${i}`, name: `דירה ${i}`, monthlyPaid: 0, emergencyPaid: 0, payments: [], phone: `97250${100000+i}` });
-                regularExpenses = [{ id: 'e1', title: 'ניקיון חדר מדרגות', comment: 'ניקיון שבועי + חומרי ניקוי', amount: 1200, month: '2026-01', cloudUrl: '', fileName: '' }];
-                emergencyExpenses = [];
+                for(let i=1;i<=16;i++) {
+                    residents.push({ 
+                        id: `d${i}`, 
+                        name: `דירה ${i}`, 
+                        monthlyPaid: 0, 
+                        emergencyPaid: 0, 
+                        payments: [], 
+                        phone: `9725012345${i.toString().padStart(2,'0')}`,  // 972501234501, 972501234502...
+                        lastPaymentDate: null
+                    });
+                }
+                regularExpenses = [
+                    { id: 'e1', title: 'ניקיון חדר מדרגות', comment: 'ניקיון שבועי + חומרי ניקוי', amount: 1200, month: '2026-01', cloudUrl: '', fileName: '' },
+                    { id: 'e2', title: 'תיקון מעלית', comment: 'החלפת כפתורים + בדיקה טכנאי', amount: 850, month: '2026-02', cloudUrl: '', fileName: '' }
+                ];
+                emergencyExpenses = [
+                    { id: 'ee1', title: 'תיקון דוד שמש חירום', comment: 'דירה 7 - דליפה', amount: 3200, month: '2026-01', cloudUrl: '', fileName: '' }
+                ];
             }
             regularExpenses = regularExpenses.filter(e => e.month >= '2026-01');
             emergencyExpenses = emergencyExpenses.filter(e => e.month >= '2026-01');
@@ -349,11 +372,11 @@
             const emergBalance = emergencyMonthlyDue - (res.emergencyPaid || 0);
             tbody.innerHTML += `
                 <tr>
-                    <td><strong>${res.name}</strong></td>
-                    <td><span class="debt-badge">${monthlyBalance>0 ? `יתרה: ${monthlyBalance.toFixed(2)} ₪` : 'מאוזן'}</span></td>
+                    <td><strong>${res.name}</strong><br><span style="font-size:0.7rem;">📞 ${res.phone}</span></td>
+                    <td><span class="debt-badge" style="${monthlyBalance>0?'background:#fef3e0':''}">${monthlyBalance>0 ? `יתרה: ${monthlyBalance.toFixed(2)} ₪` : 'מאוזן ✅'}</span></td>
                     <td>${res.lastPaymentDate || 'לא שולם'}</td>
                     <td><span class="debt-badge">שולם: ${(res.emergencyPaid||0).toFixed(2)} / ${emergencyMonthlyDue} ₪</span></td>
-                    <td>${isAdmin ? `<button onclick="markMonthlyPaid('${res.id}')" style="background:#2b9c7c;">✔️ חודשי</button> <button onclick="markEmergencyPaid('${res.id}')" style="background:#f4b942;">⚠️ חירום</button>` : '🔒 צפייה'}</td>
+                    <td>${isAdmin ? `<button onclick="markMonthlyPaid('${res.id}')" style="background:#2b9c7c;">✔️ חודשי</button> <button onclick="markEmergencyPaid('${res.id}')" style="background:#f4b942;">⚠️ חירום</button>` : '🔒 צפייה בלבד'}</td>
                 </tr>
             `;
         });
@@ -361,8 +384,29 @@
         document.getElementById('emergencyDueLabel').innerHTML = `${emergencyMonthlyDue} ₪`;
     }
 
-    window.markMonthlyPaid = async (id) => { if(isAdmin){ let r=residents.find(r=>r.id===id); if(r){ r.monthlyPaid=monthlyDue; r.lastPaymentDate=new Date().toLocaleDateString('he-IL'); await saveAllData(); renderResidentsTable(); renderMainStats(); } } };
-    window.markEmergencyPaid = async (id) => { if(isAdmin){ let r=residents.find(r=>r.id===id); if(r){ r.emergencyPaid=emergencyMonthlyDue; await saveAllData(); renderResidentsTable(); renderMainStats(); } } };
+    window.markMonthlyPaid = async (id) => { 
+        if(isAdmin){ 
+            let r=residents.find(r=>r.id===id); 
+            if(r){ 
+                r.monthlyPaid=monthlyDue; 
+                r.lastPaymentDate=new Date().toLocaleDateString('he-IL'); 
+                await saveAllData(); 
+                renderResidentsTable(); 
+                renderMainStats(); 
+            } 
+        } 
+    };
+    window.markEmergencyPaid = async (id) => { 
+        if(isAdmin){ 
+            let r=residents.find(r=>r.id===id); 
+            if(r){ 
+                r.emergencyPaid=emergencyMonthlyDue; 
+                await saveAllData(); 
+                renderResidentsTable(); 
+                renderMainStats(); 
+            } 
+        } 
+    };
 
     function renderModalTable() {
         const data = currentModalType === 'regular' ? regularExpenses : emergencyExpenses;
@@ -471,37 +515,41 @@
         const agree = document.getElementById('agreeTerms').checked;
         if(!agree) { document.getElementById('loginError').innerText = "יש לאשר את תנאי השימוש"; return; }
         if(!phone || isNaN(apartment) || apartment<1 || apartment>16) { document.getElementById('loginError').innerText = "טלפון או מספר דירה לא תקין"; return; }
-        const resident = residents.find(r => r.name === `דירה ${apartment}`);
+        const resident = residents.find(r => r.name === `דירה ${apartment}` && r.phone === phone);
         if(resident) {
             loggedInUser = { name: resident.name, apartment, phone };
             document.getElementById('userRoleDisplay').innerHTML = `🏠 ${resident.name} מחובר/ת`;
             document.getElementById('loginModal').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             renderAll();
-        } else { document.getElementById('loginError').innerText = "דירה לא נמצאה במערכת"; }
+        } else { 
+            document.getElementById('loginError').innerHTML = "הטלפון או מספר הדירה לא תואמים.<br> נסה: טלפון 9725012345XX (XX = מספר דירה)"; 
+        }
     }
 
-    // כניסת ועד בית (סודית)
+    // כניסת ועד בית
     let clickCount=0;
+    function showAdminLogin() {
+        let pwd = prompt("הזן קוד גישה לוועד בית:");
+        if(pwd === "bafy2020") {
+            isAdmin = true;
+            loggedInUser = { name: "ועד בית", apartment: 0, phone: "admin" };
+            document.getElementById('userRoleDisplay').innerHTML = "👑 ועד בית (מנהל מערכת)";
+            document.getElementById('adminPaymentControls').style.display = 'flex';
+            document.getElementById('addRecordForm').style.display = 'flex';
+            document.getElementById('loginModal').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            renderAll();
+            alert("ברוך הבא! כעת ניתן לנהל תקבולים, הוצאות, הערות, ולהעלות קבצים.");
+        } else alert("קוד שגוי!");
+    }
+
     document.getElementById('secretAdminTrigger').addEventListener('click', () => {
         clickCount++;
-        if(clickCount>=3) {
-            let pwd = prompt("הזן קוד גישה לוועד בית:");
-            if(pwd === "bafy2020") {
-                isAdmin = true;
-                loggedInUser = { name: "ועד בית", apartment: 0, phone: "admin" };
-                document.getElementById('userRoleDisplay').innerHTML = "👑 ועד בית (מנהל מערכת)";
-                document.getElementById('adminPaymentControls').style.display = 'flex';
-                document.getElementById('addRecordForm').style.display = 'flex';
-                document.getElementById('loginModal').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'block';
-                renderAll();
-                alert("ברוך הבא! כעת ניתן לנהל תקבולים, הוצאות, הערות, ולהעלות קבצים.");
-            } else alert("קוד שגוי!");
-            clickCount = 0;
-        }
+        if(clickCount>=3) { showAdminLogin(); clickCount=0; }
         setTimeout(() => { clickCount = 0; }, 1000);
     });
+    document.getElementById('adminQuickBtn').onclick = showAdminLogin;
 
     document.getElementById('openRegularExpensesBtn').onclick = () => { currentModalType='regular'; document.getElementById('modalTitle').innerHTML='📋 הוצאות רגילות + הערות'; renderModalTable(); document.getElementById('dataModal').classList.add('active'); };
     document.getElementById('openEmergencyExpensesBtn').onclick = () => { currentModalType='emergency'; document.getElementById('modalTitle').innerHTML='⚠️ הוצאות חירום + הערות'; renderModalTable(); document.getElementById('dataModal').classList.add('active'); };
