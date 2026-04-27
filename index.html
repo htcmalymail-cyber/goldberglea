@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>הכי טוב בשכונה - ניהול בית משותף | דשבורד מתקדם + 4 מסדי נתונים</title>
+    <title>הכי טוב בשכונה - מערכת ניהול מתקדמת | תקבולים + הוצאות + קרן חירום</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
@@ -33,29 +33,29 @@
         .header { text-align: center; margin-bottom: 32px; }
         .header h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #1f6e43, #2a7f6e); -webkit-background-clip: text; background-clip: text; color: transparent; }
         
-        /* 4 главные карточки */
+        /* stats cards */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 24px;
             margin-bottom: 32px;
         }
         .stat-card {
             background: white;
             border-radius: 32px;
-            padding: 1.4rem;
+            padding: 1.3rem;
             box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
-            border-left: 6px solid;
+            border-right: 6px solid;
             text-align: center;
         }
         .stat-card h4 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #2c6e6e; margin-bottom: 12px; }
-        .stat-number { font-size: 2rem; font-weight: 800; color: #174f4f; }
-        .card-income { border-left-color: #2b9c7c; }
-        .card-expense { border-left-color: #e4685c; }
-        .card-emerg-inc { border-left-color: #f4b942; }
-        .card-emerg-exp { border-left-color: #cd7b6e; }
+        .stat-number { font-size: 1.8rem; font-weight: 800; color: #174f4f; }
+        .card-income { border-right-color: #2b9c7c; }
+        .card-expense { border-right-color: #e4685c; }
+        .card-emerg-inc { border-right-color: #f4b942; }
+        .card-emerg-exp { border-right-color: #cd7b6e; }
 
-        .year-selector { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+        .year-selector, .month-selector { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
         .year-btn, .month-btn { background: #f0faf7; border: 1px solid #cce5dd; padding: 8px 20px; border-radius: 40px; cursor: pointer; font-weight: 600; }
         .year-btn.active, .month-btn.active { background: #48b5a3; color: white; border: none; }
 
@@ -67,7 +67,6 @@
         
         button, .btn { background: #48b5a3; border: none; padding: 8px 18px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; transition: 0.2s; }
         button:hover { background: #3a9b8a; transform: scale(0.98); }
-        .whatsapp-btn { background: #25D366; }
         .delete-icon { color: #c9693e; margin-right: 8px; cursor: pointer; }
         .edit-icon { color: #5f9e8e; margin-left: 6px; cursor: pointer; }
         .cloud-badge { background: #4285f4; color: white; border-radius: 20px; padding: 2px 8px; font-size: 0.7rem; margin-right: 8px; }
@@ -90,42 +89,68 @@
         .info-note { font-size: 0.75rem; color: #2c6b5c; margin-top: 8px; }
         input, textarea, select { font-family: 'Inter', sans-serif; border-radius: 60px; border: 1px solid #cce2da; padding: 8px 14px; background: #ffffffdd; }
         textarea { border-radius: 24px; }
+        .payment-row { background: #f9fef9; }
+        .debt-badge { background: #fef3e0; border-radius: 20px; padding: 2px 10px; font-size: 0.75rem; }
+        .secret-btn { background: #2c7a6e; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <div><i class="fas fa-crown" style="font-size:2rem; color:#f4b942;"></i> <i class="fas fa-home" style="font-size:2rem; color:#3d8f7e;"></i> <i class="fab fa-whatsapp" style="font-size:2rem; color:#25D366;"></i> <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:#4285f4;"></i></div>
-        <h1><i class="fas fa-building"></i> "הכי טוב בשכונה" – ניהול בית משותף מתקדם</h1>
-        <p>🌿 4 מסדי נתונים: תקבולים, הוצאות רגילות, הוצאות חירום, הכנסות חירום | קבלות ב-ImgBB | WhatsApp | ענן</p>
+        <div><i class="fas fa-crown" style="font-size:2rem; color:#f4b942;"></i> <i class="fas fa-home" style="font-size:2rem; color:#3d8f7e;"></i> <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:#4285f4;"></i></div>
+        <h1><i class="fas fa-building"></i> "הכי טוב בשכונה" – ניהול בית משותף</h1>
+        <p>🌿 תקבולים חודשיים + קרן חירום | קבלות בענן (ImgBB) | סנכרון אוטומטי | צפייה והורדה לדיירים מורשים</p>
     </div>
 
-    <!-- בחירת שנה -->
+    <!-- בחירת שנה וחודש -->
     <div class="card">
         <div class="flex-between">
-            <h3><i class="fas fa-calendar-alt"></i> בחירת שנה וסינון</h3>
+            <h3><i class="fas fa-calendar-alt"></i> סינון לפי שנה וחודש</h3>
             <div class="year-selector" id="yearSelector"></div>
         </div>
-        <div class="month-selector" id="monthSelector" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;"></div>
+        <div class="month-selector" id="monthSelector"></div>
     </div>
 
     <!-- 4 כרטיסים מרכזיים -->
     <div class="stats-grid" id="statsGrid"></div>
 
-    <!-- כפתור לפתיחת מסד הנתונים של ההוצאות השוטפות (וגם האחרים) -->
-    <div class="card" style="background: #e8f3f0;">
+    <!-- טבלת תקבולים חודשיים + קרן חירום לפי דירה (כמו בקובץ המקורי) -->
+    <div class="card">
         <div class="flex-between">
-            <div><i class="fas fa-database"></i> <strong>📊 מסדי נתונים מפורטים</strong> – צפייה, הוספה, העלאת קבצים (עבור ועד בית)</div>
-            <button id="openExpensesDBBtn" class="btn"><i class="fas fa-folder-open"></i> ניהול הוצאות רגילות</button>
+            <h3><i class="fas fa-hand-holding-usd"></i> תקבולים חודשיים וקרן חירום – לפי דירה</h3>
+            <div id="adminPaymentControls" style="display: none;">
+                <button id="addMonthlyPaymentBtn" class="btn secret-btn"><i class="fas fa-plus"></i> הוסף תקבול חודשי</button>
+                <button id="addEmergencyPaymentBtn" class="btn secret-btn" style="background:#f4b942;"><i class="fas fa-ambulance"></i> הוסף תשלום חירום</button>
+            </div>
         </div>
-        <div class="info-note" style="margin-top: 12px;">✅ דיירים מורשים יכולים לצפות ולהוריד. ועד בית יכול לערוך, להוסיף, להעלות קבצים ל-ImgBB.</div>
+        <div style="overflow-x: auto;">
+            <table style="width:100%">
+                <thead>
+                    <tr><th>דירה / שם</th><th>יתרה חודשית</th><th>תשלום אחרון</th><th>הכנסות חירום (מצטבר)</th><th>פעולות</th></tr>
+                </thead>
+                <tbody id="residentsPaymentsTable"></tbody>
+            </table>
+        </div>
+        <div class="info-note" style="margin-top:12px;">* סכום חודשי קבוע: <strong id="monthlyDueLabel">70 ₪</strong> | קרן חירום: כל דירה משלמת <strong id="emergencyDueLabel">30 ₪</strong> לחודש (ניתן לשינוי ע"י ועד בית).</div>
     </div>
 
-    <!-- פורום והצעות -->
+    <!-- כפתורים לניהול מסדי נתונים (הוצאות + קבצים) -->
+    <div class="card" style="background: #e8f3f0;">
+        <div class="flex-between">
+            <div><i class="fas fa-database"></i> <strong>📊 הוצאות שוטפות, הוצאות חירום והכנסות</strong> – צפייה, הורדת CSV, העלאת קבצים (עבור ועד בית)</div>
+            <div>
+                <button id="openRegularExpensesBtn" class="btn"><i class="fas fa-folder-open"></i> הוצאות רגילות</button>
+                <button id="openEmergencyExpensesBtn" class="btn" style="background:#cd7b6e;"><i class="fas fa-exclamation-triangle"></i> הוצאות חירום</button>
+            </div>
+        </div>
+        <div class="info-note">✅ דיירים מורשים יכולים לצפות בכל הרשומות ולהוריד CSV. ועד בית יכול לערוך, להוסיף, להעלות קבצים ל-ImgBB.</div>
+    </div>
+
+    <!-- פורום והצעות (כמו במקור) -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 28px;">
         <div class="card">
-            <div class="flex-between"><h3><i class="fas fa-comments"></i> פורום שכונתי</h3></div>
+            <h3><i class="fas fa-comments"></i> פורום שכונתי</h3>
             <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
                 <input type="text" id="forumName" placeholder="שם / דירה" style="flex:1;">
                 <textarea id="forumMsg" rows="2" placeholder="הודעה חדשה..." style="flex:2;"></textarea>
@@ -134,7 +159,7 @@
             <div id="forumContainer" style="max-height:300px; overflow:auto;"></div>
         </div>
         <div class="card">
-            <div class="flex-between"><h3><i class="fas fa-lightbulb"></i> הצעות לשיפור</h3></div>
+            <h3><i class="fas fa-lightbulb"></i> הצעות לשיפור</h3>
             <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
                 <input type="text" id="suggAuthor" placeholder="שם המציע" style="flex:1;">
                 <input type="text" id="suggTitle" placeholder="תוכן ההצעה" style="flex:2;">
@@ -145,22 +170,17 @@
     </div>
 </div>
 
-<!-- מודאל בסיס נתונים (4 מסדי נתונים מאוחדים) -->
+<!-- מודאל כללי להצגת רשומות (הוצאות רגילות/חירום) -->
 <div id="dataModal" class="modal-overlay">
     <div class="modal-container">
         <div class="flex-between">
-            <h2 id="modalTitle">📋 מסד נתונים - הוצאות רגילות</h2>
+            <h2 id="modalTitle">📋 הוצאות רגילות</h2>
             <button id="closeModalBtn" style="background: none; color: #c9693e; font-size: 2rem;">&times;</button>
         </div>
-        <div style="margin: 16px 0; display: flex; gap: 12px; flex-wrap: wrap;">
-            <button class="btn db-type-btn" data-type="regularExpenses" style="background:#48b5a3;">📋 הוצאות רגילות</button>
-            <button class="btn db-type-btn" data-type="regularIncome" style="background:#2b9c7c;">💰 תקבולים (הכנסות רגילות)</button>
-            <button class="btn db-type-btn" data-type="emergencyIncome" style="background:#f4b942;">🛡️ הכנסות חירום</button>
-            <button class="btn db-type-btn" data-type="emergencyExpense" style="background:#cd7b6e;">⚠️ הוצאות חירום</button>
-            <button id="downloadDBBtn" class="btn" style="background:#2c7a6e;"><i class="fas fa-download"></i> הורד CSV (לדיירים מורשים)</button>
+        <div style="margin: 16px 0;">
+            <button id="downloadCSVBtn" class="btn" style="background:#2c7a6e;"><i class="fas fa-download"></i> הורד CSV (לכל המשתמשים)</button>
         </div>
-        
-        <!-- טופס הוספה (רק לוועד בית) -->
+        <!-- אזור הוספה (רק לוועד בית) -->
         <div id="addRecordForm" style="display: none; background: #ecf6f4; padding: 16px; border-radius: 28px; margin-bottom: 20px;">
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <input type="text" id="recordTitle" placeholder="תיאור / סיבה" style="flex:2;">
@@ -171,14 +191,10 @@
             </div>
             <div id="filePreview" style="font-size:0.7rem; margin-top:6px;"></div>
         </div>
-        
         <div style="overflow-x:auto;">
-            <table style="width:100%">
-                <thead><tr><th>תיאור</th><th>חודש</th><th>סכום</th><th>הוכחה (ענן)</th><th>פעולות</th></tr></thead>
-                <tbody id="dbTableBody"></tbody>
-            </table>
+            <table style="width:100%"><thead><tr><th>תיאור</th><th>חודש</th><th>סכום</th><th>הוכחה (ענן)</th><th>פעולות</th></tr></thead><tbody id="dbTableBody"></tbody></table>
         </div>
-        <div id="modalTotal" style="margin-top: 18px; text-align: left; font-weight: 800; padding: 12px; background: #eef3f0; border-radius: 32px;"></div>
+        <div id="modalTotal" style="margin-top: 18px; font-weight: 800; text-align: left; background: #eef3f0; padding: 12px; border-radius: 32px;"></div>
     </div>
 </div>
 
@@ -186,7 +202,7 @@
 <div class="sync-status" id="syncStatus">☁️ מתחבר לענן...</div>
 
 <script>
-    // Firebase Config (מתוך הקובץ שסופק)
+    // Firebase Config (זהה למקור)
     const firebaseConfig = {
         apiKey: "AIzaSyD6Pdxh6nHHys3hHr15YH925DiBqEEKjNI",
         authDomain: "home-menegment-67459.firebaseapp.com",
@@ -200,16 +216,16 @@
     const database = firebase.database();
     const IMGBB_API_KEY = "f9bb791d0681c7cf81b6a7cd1456e4aa";
 
-    // מודלים נתונים: 4 מסדי נתונים
+    // מודלים נתונים
     let regularExpenses = [];    // הוצאות רגילות
-    let regularIncome = [];      // הכנסות רגילות (תקבולים)
-    let emergencyIncome = [];    // הכנסות חירום (תשלומים לקרן חירום)
-    let emergencyExpense = [];   // הוצאות חירום (שימוש בקרן חירום)
-    
+    let emergencyExpenses = [];  // הוצאות חירום
+    let residents = [];          // רשימת דיירים { id, name, monthlyPaid, emergencyPaid, paymentHistory }
+    let monthlyDue = 70;
+    let emergencyMonthlyDue = 30;
     let currentYear = 2026;
     let currentMonthFilter = 'all';
     let isAdmin = false;
-    let currentDBType = "regularExpenses"; // regularExpenses, regularIncome, emergencyIncome, emergencyExpense
+    let currentModalType = "regular"; // 'regular' or 'emergency'
     let selectedFile = null;
     let isLoading = true;
 
@@ -242,12 +258,13 @@
         });
     }
 
-    async function saveToFirebase() {
+    async function saveAllData() {
         if(isLoading) return;
         await database.ref('/regularExpenses').set(regularExpenses);
-        await database.ref('/regularIncome').set(regularIncome);
-        await database.ref('/emergencyIncome').set(emergencyIncome);
-        await database.ref('/emergencyExpense').set(emergencyExpense);
+        await database.ref('/emergencyExpenses').set(emergencyExpenses);
+        await database.ref('/residents').set(residents);
+        await database.ref('/monthlyDue').set(monthlyDue);
+        await database.ref('/emergencyMonthlyDue').set(emergencyMonthlyDue);
         updateSyncStatus('☁️ נשמר');
     }
 
@@ -259,80 +276,132 @@
             const data = snap.val();
             if(data) {
                 regularExpenses = data.regularExpenses || [];
-                regularIncome = data.regularIncome || [];
-                emergencyIncome = data.emergencyIncome || [];
-                emergencyExpense = data.emergencyExpense || [];
+                emergencyExpenses = data.emergencyExpenses || [];
+                residents = data.residents || [];
+                monthlyDue = data.monthlyDue || 70;
+                emergencyMonthlyDue = data.emergencyMonthlyDue || 30;
             } else {
-                // נתוני דמו ינואר 2026
-                regularExpenses = [{ id: 'e1', title: 'ניקיון חדר מדרגות', amount: 1200, month: '2026-01', cloudUrl: '', fileName: '' }];
-                regularIncome = [{ id: 'i1', title: 'תקבול דירה 4', amount: 450, month: '2026-01', cloudUrl: '', fileName: '' }];
-                emergencyIncome = [{ id: 'ei1', title: 'תשלום לקרן חירום - דירה 9', amount: 300, month: '2026-01', cloudUrl: '' }];
-                emergencyExpense = [{ id: 'ee1', title: 'תיקון דוד חירום', amount: 2500, month: '2026-01', cloudUrl: '' }];
+                // יצירת דיירים לדוגמה (16 דירות)
+                residents = [];
+                for(let i=1;i<=16;i++) residents.push({ id: `d${i}`, name: `דירה ${i}`, monthlyPaid: 0, emergencyPaid: 0, payments: [] });
+                regularExpenses = [{ id: 'e1', title: 'ניקיון', amount: 1200, month: '2026-01', cloudUrl: '', fileName: '' }];
+                emergencyExpenses = [];
             }
-            // סינון רק מ-2026 והלאה
             regularExpenses = regularExpenses.filter(e => e.month >= '2026-01');
-            regularIncome = regularIncome.filter(i => i.month >= '2026-01');
-            emergencyIncome = emergencyIncome.filter(i => i.month >= '2026-01');
-            emergencyExpense = emergencyExpense.filter(e => e.month >= '2026-01');
-            updateSyncStatus('✅ טעון');
+            emergencyExpenses = emergencyExpenses.filter(e => e.month >= '2026-01');
         } catch(e) { console.error(e); updateSyncStatus('❌ שגיאה', true); }
         finally { isLoading = false; renderAll(); }
     }
 
-    // חישוב סך הכל לשנה הנוכחית
-    function getTotalByType(type, year) {
-        let arr = [];
-        if(type === 'regularIncome') arr = regularIncome;
-        else if(type === 'regularExpenses') arr = regularExpenses;
-        else if(type === 'emergencyIncome') arr = emergencyIncome;
-        else arr = emergencyExpense;
-        return arr.filter(item => item.month.startsWith(year.toString())).reduce((s, i) => s + i.amount, 0);
+    // חישוב סטטיסטיקות שנתיות
+    function getYearlyTotal(type) {
+        if(type === 'regularIncome') return residents.reduce((sum, r) => sum + (r.monthlyPaid || 0), 0);
+        if(type === 'regularExpenses') return regularExpenses.filter(e => e.month.startsWith(currentYear.toString())).reduce((s,e)=>s+e.amount,0);
+        if(type === 'emergencyIncome') return residents.reduce((sum, r) => sum + (r.emergencyPaid || 0), 0);
+        if(type === 'emergencyExpenses') return emergencyExpenses.filter(e => e.month.startsWith(currentYear.toString())).reduce((s,e)=>s+e.amount,0);
+        return 0;
     }
 
     function renderMainStats() {
-        const totalIncome = getTotalByType('regularIncome', currentYear);
-        const totalRegExp = getTotalByType('regularExpenses', currentYear);
-        const totalEmergInc = getTotalByType('emergencyIncome', currentYear);
-        const totalEmergExp = getTotalByType('emergencyExpense', currentYear);
+        const totalIncome = getYearlyTotal('regularIncome');
+        const totalRegExp = getYearlyTotal('regularExpenses');
+        const totalEmergInc = getYearlyTotal('emergencyIncome');
+        const totalEmergExp = getYearlyTotal('emergencyExpenses');
         document.getElementById('statsGrid').innerHTML = `
-            <div class="stat-card card-income"><h4>💰 סך הכנסות רגילות</h4><div class="stat-number">${totalIncome.toLocaleString()} ₪</div><small>תקבולים + אחזקה</small></div>
+            <div class="stat-card card-income"><h4>💰 סך הכנסות רגילות</h4><div class="stat-number">${totalIncome.toLocaleString()} ₪</div><small>תקבולים חודשיים</small></div>
             <div class="stat-card card-expense"><h4>📉 סך הוצאות רגילות</h4><div class="stat-number">${totalRegExp.toLocaleString()} ₪</div><small>תחזוקה שוטפת</small></div>
             <div class="stat-card card-emerg-inc"><h4>🛡️ סך הכנסות חירום</h4><div class="stat-number">${totalEmergInc.toLocaleString()} ₪</div><small>תשלומים לקרן</small></div>
             <div class="stat-card card-emerg-exp"><h4>⚠️ סך הוצאות חירום</h4><div class="stat-number">${totalEmergExp.toLocaleString()} ₪</div><small>ניצול קרן חירום</small></div>
         `;
     }
 
-    function getCurrentDataset() {
-        if(currentDBType === 'regularExpenses') return regularExpenses;
-        if(currentDBType === 'regularIncome') return regularIncome;
-        if(currentDBType === 'emergencyIncome') return emergencyIncome;
-        return emergencyExpense;
+    // טבלת תקבולים לפי דירה
+    function renderResidentsTable() {
+        const tbody = document.getElementById('residentsPaymentsTable');
+        tbody.innerHTML = '';
+        residents.forEach(res => {
+            const expectedMonthly = monthlyDue;
+            const monthlyBalance = expectedMonthly - (res.monthlyPaid || 0);
+            const expectedEmerg = emergencyMonthlyDue;
+            const emergBalance = expectedEmerg - (res.emergencyPaid || 0);
+            tbody.innerHTML += `
+                <tr class="payment-row">
+                    <td><strong>${res.name}</strong></td>
+                    <td><span class="debt-badge ${monthlyBalance>0 ? 'debt-negative' : ''}">יתרה: ${monthlyBalance>0 ? monthlyBalance.toFixed(2)+' ₪' : 'מאוזן'}</span></td>
+                    <td>${res.lastPaymentDate || 'לא שולם'}</td>
+                    <td><span class="debt-badge">שולם: ${(res.emergencyPaid||0).toFixed(2)} / ${emergencyMonthlyDue} ₪</span></td>
+                    <td>${isAdmin ? `<button class="btn small" onclick="markMonthlyPaid('${res.id}')" style="background:#2b9c7c;">✔️ חודשי</button> <button class="btn small" onclick="markEmergencyPaid('${res.id}')" style="background:#f4b942;">⚠️ חירום</button>` : '🔒 צפייה בלבד'}</td>
+                </tr>
+            `;
+        });
+        document.getElementById('monthlyDueLabel').innerHTML = `${monthlyDue} ₪`;
+        document.getElementById('emergencyDueLabel').innerHTML = `${emergencyMonthlyDue} ₪`;
     }
 
+    // פעולות עריכת תשלומים (רק אדמין)
+    window.markMonthlyPaid = async (id) => {
+        if(!isAdmin) return;
+        const resident = residents.find(r => r.id === id);
+        if(resident) {
+            resident.monthlyPaid = monthlyDue;
+            resident.lastPaymentDate = new Date().toLocaleDateString('he-IL');
+            await saveAllData();
+            renderResidentsTable();
+            renderMainStats();
+        }
+    };
+    window.markEmergencyPaid = async (id) => {
+        if(!isAdmin) return;
+        const resident = residents.find(r => r.id === id);
+        if(resident) {
+            resident.emergencyPaid = emergencyMonthlyDue;
+            await saveAllData();
+            renderResidentsTable();
+            renderMainStats();
+        }
+    };
+
+    // ניהול מודאל להוצאות
+    async function openModal(type) {
+        currentModalType = type;
+        document.getElementById('modalTitle').innerHTML = type === 'regular' ? '📋 הוצאות רגילות' : '⚠️ הוצאות חירום';
+        renderModalTable();
+        document.getElementById('dataModal').classList.add('active');
+    }
     function renderModalTable() {
-        let data = getCurrentDataset();
-        if(currentMonthFilter !== 'all') data = data.filter(d => d.month === currentMonthFilter);
-        else if(currentYear) data = data.filter(d => d.month.startsWith(currentYear.toString()));
+        const data = currentModalType === 'regular' ? regularExpenses : emergencyExpenses;
+        let filtered = data;
+        if(currentMonthFilter !== 'all') filtered = filtered.filter(d => d.month === currentMonthFilter);
+        else filtered = filtered.filter(d => d.month.startsWith(currentYear.toString()));
         const tbody = document.getElementById('dbTableBody');
         tbody.innerHTML = '';
         let total = 0;
-        data.forEach(rec => {
+        filtered.forEach(rec => {
             total += rec.amount;
-            const row = tbody.insertRow();
-            row.insertCell(0).innerHTML = rec.title;
-            row.insertCell(1).innerHTML = rec.month;
-            row.insertCell(2).innerHTML = `<span class="${currentDBType.includes('Income') ? 'amount-income' : 'amount-expense'}">${rec.amount.toFixed(2)} ₪</span>`;
-            const hasCloud = rec.cloudUrl && rec.cloudUrl.trim() !== '';
-            row.insertCell(3).innerHTML = hasCloud ? `<i class="fas fa-cloud-upload-alt attachment-icon" onclick="window.open('${rec.cloudUrl}','_blank')"></i> <span class="cloud-badge">ענן</span>` : '❌ ללא קבלה';
-            const actions = isAdmin ? `<i class="fas fa-trash-alt delete-icon" onclick="deleteRecord('${rec.id}')"></i>` : '';
-            row.insertCell(4).innerHTML = actions;
+            tbody.innerHTML += `
+                <tr>
+                    <td>${rec.title}</td><td>${rec.month}</td>
+                    <td class="amount-expense">${rec.amount.toFixed(2)} ₪</td>
+                    <td>${rec.cloudUrl ? `<i class="fas fa-cloud-upload-alt attachment-icon" onclick="window.open('${rec.cloudUrl}','_blank')"></i> <span class="cloud-badge">ענן</span>` : '❌'}</td>
+                    <td>${isAdmin ? `<i class="fas fa-trash-alt delete-icon" onclick="deleteRecord('${rec.id}')"></i>` : ''}</td>
+                </tr>
+            `;
         });
         document.getElementById('modalTotal').innerHTML = `📌 סה"כ לתקופה: ${total.toLocaleString()} ₪`;
-        if(data.length === 0) tbody.innerHTML = '<tr><td colspan="5">אין רשומות</td></tr>';
+        if(filtered.length===0) tbody.innerHTML = '<tr><td colspan="5">אין רשומות</td></tr>';
     }
-
-    async function addRecord() {
-        if(!isAdmin) { alert("רק ועד בית יכול להוסיף רשומות"); return; }
+    window.deleteRecord = async (id) => {
+        if(!isAdmin) return;
+        if(confirm("למחוק רשומה?")) {
+            if(currentModalType === 'regular') regularExpenses = regularExpenses.filter(r => r.id !== id);
+            else emergencyExpenses = emergencyExpenses.filter(r => r.id !== id);
+            await saveAllData();
+            renderModalTable();
+            renderMainStats();
+        }
+    };
+    async function addNewRecord() {
+        if(!isAdmin) return;
         let title = document.getElementById('recordTitle').value.trim();
         let amount = parseFloat(document.getElementById('recordAmount').value);
         let month = document.getElementById('recordMonth').value;
@@ -343,80 +412,60 @@
                 const upload = await uploadToImgBB(selectedFile);
                 cloudUrl = upload.url;
                 fileName = upload.fileName;
-                document.getElementById('filePreview').innerHTML = `<i class="fas fa-check-circle"></i> הועלה: ${fileName}`;
+                document.getElementById('filePreview').innerHTML = `<i class="fas fa-check-circle"></i> הועלה`;
             } catch(err) { alert("שגיאת העלאה: "+err.message); return; }
         }
-        const newRecord = { id: Date.now().toString(), title, amount, month, cloudUrl, fileName };
-        if(currentDBType === 'regularExpenses') regularExpenses.push(newRecord);
-        else if(currentDBType === 'regularIncome') regularIncome.push(newRecord);
-        else if(currentDBType === 'emergencyIncome') emergencyIncome.push(newRecord);
-        else emergencyExpense.push(newRecord);
-        await saveToFirebase();
+        const newRec = { id: Date.now().toString(), title, amount, month, cloudUrl, fileName };
+        if(currentModalType === 'regular') regularExpenses.push(newRec);
+        else emergencyExpenses.push(newRec);
+        await saveAllData();
         document.getElementById('recordTitle').value = '';
         document.getElementById('recordAmount').value = '';
         selectedFile = null;
         document.getElementById('recordFile').value = '';
-        document.getElementById('filePreview').innerHTML = '';
         renderModalTable();
         renderMainStats();
     }
-
-    async function deleteRecord(id) {
-        if(!isAdmin) return;
-        if(confirm("למחוק רשומה?")) {
-            if(currentDBType === 'regularExpenses') regularExpenses = regularExpenses.filter(r => r.id !== id);
-            else if(currentDBType === 'regularIncome') regularIncome = regularIncome.filter(r => r.id !== id);
-            else if(currentDBType === 'emergencyIncome') emergencyIncome = emergencyIncome.filter(r => r.id !== id);
-            else emergencyExpense = emergencyExpense.filter(r => r.id !== id);
-            await saveToFirebase();
-            renderModalTable();
-            renderMainStats();
-        }
-    }
-
     function downloadCSV() {
-        if(!isAdmin) alert("רק דיירים מורשים יכולים להוריד - גש לוועד בית לקבלת אישור");
-        else {
-            let data = getCurrentDataset();
-            let csvRows = [["תיאור","חודש","סכום","קישור לתמונה"]];
-            data.forEach(r => csvRows.push([r.title, r.month, r.amount, r.cloudUrl || '']));
-            const csv = csvRows.map(row => row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(",")).join("\n");
-            const blob = new Blob(["\uFEFF" + csv], {type: "text/csv;charset=utf-8;"});
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `${currentDBType}_${currentYear}_report.csv`;
-            link.click();
-            URL.revokeObjectURL(link.href);
-        }
+        const data = currentModalType === 'regular' ? regularExpenses : emergencyExpenses;
+        let filtered = data;
+        if(currentMonthFilter !== 'all') filtered = filtered.filter(d => d.month === currentMonthFilter);
+        else filtered = filtered.filter(d => d.month.startsWith(currentYear.toString()));
+        const rows = [["תיאור","חודש","סכום","קישור"]];
+        filtered.forEach(r => rows.push([r.title, r.month, r.amount, r.cloudUrl || '']));
+        const csv = rows.map(row => row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(",")).join("\n");
+        const blob = new Blob(["\uFEFF" + csv], {type: "text/csv;charset=utf-8"});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${currentModalType}_expenses_${currentYear}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
     }
 
     // פורום והצעות
     let forum = [], suggestions = [];
-    async function loadForumAndSuggestions() {
+    async function loadForum() {
         const f = await database.ref('/forum').once('value');
         const s = await database.ref('/suggestions').once('value');
         if(f.exists()) forum = f.val();
         if(s.exists()) suggestions = s.val();
         if(!forum.length) forum = [{ id:'f1', author:'מערכת', text:'ברוכים הבאים!', timestamp:new Date().toISOString() }];
-        if(!suggestions.length) suggestions = [];
-        renderForumAndSuggestions();
+        renderForum();
     }
-    function renderForumAndSuggestions() {
-        const forumDiv = document.getElementById('forumContainer');
-        forumDiv.innerHTML = forum.slice().reverse().map(f => `<div class="forum-message" style="background:#fefef7; border-radius:24px; padding:12px; margin-bottom:12px;"><strong>${escapeHtml(f.author)}</strong> <small>${new Date(f.timestamp).toLocaleDateString()}</small><div>${escapeHtml(f.text)}</div></div>`).join('');
-        const suggDiv = document.getElementById('suggestionsContainer');
-        suggDiv.innerHTML = suggestions.map(s => `<div style="background:#fefef7; border-radius:24px; padding:12px; margin-bottom:12px;"><div><strong>${escapeHtml(s.author)}</strong> מציע: ${escapeHtml(s.title)} ${isAdmin ? `<i class="fas fa-trash-alt delete-icon" onclick="deleteSuggestion('${s.id}')"></i>` : ''}</div><div><button class="vote-up" data-id="${s.id}">👍 ${s.up||0}</button> <button class="vote-down" data-id="${s.id}">👎 ${s.down||0}</button></div></div>`).join('');
-        document.querySelectorAll('.vote-up').forEach(b => b.onclick = () => { let sug = suggestions.find(s=>s.id===b.dataset.id); if(sug){ sug.up = (sug.up||0)+1; saveForumSugg(); renderForumAndSuggestions(); } });
-        document.querySelectorAll('.vote-down').forEach(b => b.onclick = () => { let sug = suggestions.find(s=>s.id===b.dataset.id); if(sug){ sug.down = (sug.down||0)+1; saveForumSugg(); renderForumAndSuggestions(); } });
+    function renderForum() {
+        document.getElementById('forumContainer').innerHTML = forum.slice().reverse().map(f => `<div style="background:#fefef7; border-radius:24px; padding:12px; margin-bottom:12px;"><strong>${escapeHtml(f.author)}</strong> <small>${new Date(f.timestamp).toLocaleDateString()}</small><div>${escapeHtml(f.text)}</div></div>`).join('');
+        document.getElementById('suggestionsContainer').innerHTML = suggestions.map(s => `<div style="background:#fefef7; border-radius:24px; padding:12px; margin-bottom:12px;"><strong>${escapeHtml(s.author)}</strong> מציע: ${escapeHtml(s.title)} ${isAdmin ? `<i class="fas fa-trash-alt delete-icon" onclick="deleteSuggestion('${s.id}')"></i>` : ''}<div><button class="vote-up" data-id="${s.id}">👍 ${s.up||0}</button> <button class="vote-down" data-id="${s.id}">👎 ${s.down||0}</button></div></div>`).join('');
+        document.querySelectorAll('.vote-up').forEach(b => b.onclick = () => { let sug = suggestions.find(s=>s.id===b.dataset.id); if(sug){ sug.up = (sug.up||0)+1; saveForum(); renderForum(); } });
+        document.querySelectorAll('.vote-down').forEach(b => b.onclick = () => { let sug = suggestions.find(s=>s.id===b.dataset.id); if(sug){ sug.down = (sug.down||0)+1; saveForum(); renderForum(); } });
     }
-    async function saveForumSugg() { await database.ref('/forum').set(forum); await database.ref('/suggestions').set(suggestions); }
-    function addForumMessage() { let a=document.getElementById('forumName').value.trim(), t=document.getElementById('forumMsg').value.trim(); if(a&&t){ forum.push({id:Date.now().toString(), author:a, text:t, timestamp:new Date().toISOString()}); saveForumSugg(); renderForumAndSuggestions(); document.getElementById('forumName').value=''; document.getElementById('forumMsg').value=''; } }
-    function addSuggestion() { let a=document.getElementById('suggAuthor').value.trim(), t=document.getElementById('suggTitle').value.trim(); if(a&&t){ suggestions.push({id:Date.now().toString(), author:a, title:t, up:0, down:0}); saveForumSugg(); renderForumAndSuggestions(); document.getElementById('suggAuthor').value=''; document.getElementById('suggTitle').value=''; } }
-    function deleteSuggestion(id) { if(isAdmin) { suggestions = suggestions.filter(s=>s.id!==id); saveForumSugg(); renderForumAndSuggestions(); } }
-    window.deleteSuggestion = deleteSuggestion;
+    async function saveForum() { await database.ref('/forum').set(forum); await database.ref('/suggestions').set(suggestions); }
+    function addForumMessage() { let a=document.getElementById('forumName').value.trim(), t=document.getElementById('forumMsg').value.trim(); if(a&&t){ forum.push({id:Date.now().toString(), author:a, text:t, timestamp:new Date().toISOString()}); saveForum(); renderForum(); document.getElementById('forumName').value=''; document.getElementById('forumMsg').value=''; } }
+    function addSuggestion() { let a=document.getElementById('suggAuthor').value.trim(), t=document.getElementById('suggTitle').value.trim(); if(a&&t){ suggestions.push({id:Date.now().toString(), author:a, title:t, up:0, down:0}); saveForum(); renderForum(); document.getElementById('suggAuthor').value=''; document.getElementById('suggTitle').value=''; } }
+    window.deleteSuggestion = async (id) => { if(isAdmin) { suggestions = suggestions.filter(s=>s.id!==id); await saveForum(); renderForum(); } };
     function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 
-    function initYearMonthSelectors() {
+    // שנה/חודש
+    function initSelectors() {
         const yearDiv = document.getElementById('yearSelector');
         yearDiv.innerHTML = ['2026','2027','2028','2029','2030'].map(y => `<button class="year-btn ${currentYear==y?'active':''}" data-year="${y}">${y}</button>`).join('');
         document.querySelectorAll('.year-btn').forEach(btn => btn.onclick = () => { currentYear = parseInt(btn.dataset.year); currentMonthFilter = 'all'; initMonthSelector(); renderAll(); });
@@ -425,38 +474,44 @@
     function initMonthSelector() {
         const monthDiv = document.getElementById('monthSelector');
         monthDiv.innerHTML = `<button class="month-btn ${currentMonthFilter==='all'?'active':''}" data-month="all">כל החודשים</button>`;
-        for(let m=1;m<=12;m++) {
-            const monthStr = `${currentYear}-${m.toString().padStart(2,'0')}`;
-            monthDiv.innerHTML += `<button class="month-btn ${currentMonthFilter===monthStr?'active':''}" data-month="${monthStr}">${monthStr}</button>`;
-        }
+        for(let m=1;m<=12;m++) { const mon = `${currentYear}-${m.toString().padStart(2,'0')}`; monthDiv.innerHTML += `<button class="month-btn ${currentMonthFilter===mon?'active':''}" data-month="${mon}">${mon}</button>`; }
         document.querySelectorAll('.month-btn').forEach(btn => btn.onclick = () => { currentMonthFilter = btn.dataset.month; renderAll(); });
     }
+    function renderAll() { renderMainStats(); renderResidentsTable(); if(document.getElementById('dataModal').classList.contains('active')) renderModalTable(); renderForum(); }
 
-    function renderAll() {
-        renderMainStats();
-        if(document.getElementById('dataModal').classList.contains('active')) renderModalTable();
-        renderForumAndSuggestions();
-    }
+    // אימות ועד בית (כמו בקובץ המקורי)
+    let clickCount = 0;
+    document.getElementById('secretAdminTrigger').addEventListener('click', () => {
+        clickCount++;
+        if(clickCount>=3) {
+            let pwd = prompt("הזן קוד גישה לוועד בית:");
+            if(pwd === "bafy2020") {
+                isAdmin = true;
+                document.getElementById('adminPaymentControls').style.display = 'flex';
+                document.getElementById('addRecordForm').style.display = 'flex';
+                alert("ברוך הבא! כעת ניתן לנהל תקבולים, הוצאות, קרן חירום ולהעלות קבלות.");
+                renderAll();
+            } else alert("קוד שגוי!");
+            clickCount = 0;
+        }
+        setTimeout(() => { clickCount = 0; }, 1000);
+    });
 
-    // אימות ועד בית
-    let clickCount=0;
-    document.getElementById('secretAdminTrigger').addEventListener('click', () => { clickCount++; if(clickCount>=3) { let pwd=prompt("קוד גישה:"); if(pwd==="bafy2020") { isAdmin=true; document.getElementById('addRecordForm').style.display='flex'; alert("ברוך הבא, ועד בית! כעת ניתן להוסיף/למחוק תקבולים והוצאות."); renderAll(); } else alert("קוד שגוי"); clickCount=0; } setTimeout(()=>clickCount=0,1000); });
-
-    // מודאל
-    const modal = document.getElementById('dataModal');
-    document.getElementById('openExpensesDBBtn').onclick = () => { currentDBType = 'regularExpenses'; document.getElementById('modalTitle').innerText = '📋 הוצאות רגילות'; renderModalTable(); modal.classList.add('active'); };
-    document.getElementById('closeModalBtn').onclick = () => modal.classList.remove('active');
-    document.querySelectorAll('.db-type-btn').forEach(btn => btn.onclick = () => { currentDBType = btn.dataset.type; let titles = { regularExpenses:'הוצאות רגילות', regularIncome:'תקבולים (הכנסות)', emergencyIncome:'הכנסות חירום', emergencyExpense:'הוצאות חירום' }; document.getElementById('modalTitle').innerHTML = `📋 ${titles[currentDBType]}`; renderModalTable(); });
-    document.getElementById('downloadDBBtn').onclick = downloadCSV;
-    document.getElementById('addRecordBtn').onclick = addRecord;
+    // Events
+    document.getElementById('openRegularExpensesBtn').onclick = () => openModal('regular');
+    document.getElementById('openEmergencyExpensesBtn').onclick = () => openModal('emergency');
+    document.getElementById('closeModalBtn').onclick = () => document.getElementById('dataModal').classList.remove('active');
+    document.getElementById('downloadCSVBtn').onclick = downloadCSV;
+    document.getElementById('addRecordBtn').onclick = addNewRecord;
     document.getElementById('recordFile').addEventListener('change', (e) => { if(e.target.files[0]) { selectedFile = e.target.files[0]; document.getElementById('filePreview').innerHTML = `<i class="fas fa-file"></i> ${selectedFile.name}`; } else { selectedFile=null; document.getElementById('filePreview').innerHTML=''; } });
     document.getElementById('postMsgBtn').onclick = addForumMessage;
     document.getElementById('addSuggBtn').onclick = addSuggestion;
-    window.deleteRecord = deleteRecord;
+    document.getElementById('addMonthlyPaymentBtn').onclick = () => { alert("פונקציה לניהול תשלומים חודשיים - ניתן להוסיף ידנית דרך טבלת הדיירים"); };
+    document.getElementById('addEmergencyPaymentBtn').onclick = () => { alert("ניהול תשלומי חירום - סמן תשלום בעמודת חירום"); };
 
-    // הפעלה
-    loadFromFirebase().then(() => { loadForumAndSuggestions(); initYearMonthSelectors(); renderAll(); isLoading=false; });
-    setInterval(() => saveToFirebase(), 30000);
+    // התחלה
+    loadFromFirebase().then(() => { loadForum(); initSelectors(); renderAll(); isLoading=false; });
+    setInterval(() => saveAllData(), 30000);
 </script>
 </body>
 </html>
