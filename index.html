@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>הכי טוב בשכונה - ניהול בית משותף | התחברות דיירים מלאה</title>
+    <title>הכי טוב בשכונה - ניהול מתקדם | עדכון תשלומים + תוספת 10%</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
@@ -64,7 +64,7 @@
         .amount-income { color: #2f855a; font-weight: 700; }
         .amount-expense { color: #c9693c; font-weight: 700; }
         
-        button, .btn { background: #48b5a3; border: none; padding: 8px 18px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button, .btn { background: #48b5a3; border: none; padding: 8px 18px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
         button:hover { background: #3a9b8a; transform: scale(0.98); }
         .delete-icon { color: #c9693e; margin-right: 8px; cursor: pointer; }
         .edit-icon { color: #5f9e8e; margin-left: 6px; cursor: pointer; }
@@ -89,7 +89,6 @@
         input, textarea, select { font-family: 'Inter', sans-serif; border-radius: 60px; border: 1px solid #cce2da; padding: 8px 14px; background: #ffffffdd; }
         textarea { border-radius: 24px; }
         
-        /* מודל התחברות */
         .login-welcome-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 30, 30, 0.95); backdrop-filter: blur(8px);
@@ -109,6 +108,10 @@
         .resident-badge { background: #2b9c7c20; padding: 6px 16px; border-radius: 40px; font-size: 0.8rem; display: inline-block; margin-right: 12px; }
         .comment-text { font-size: 0.75rem; color: #5f8b7e; margin-top: 4px; display: block; }
         .demo-info { background: #e8f0fe; border-radius: 28px; padding: 12px; margin: 12px 0; font-size: 0.8rem; text-align: right; }
+        .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+        .increase-btn { background: #e67e22; }
+        .increase-btn:hover { background: #d35400; }
+        .collect-btn { background: #27ae60; }
     </style>
 </head>
 <body>
@@ -117,7 +120,7 @@
     <div class="header">
         <div><i class="fas fa-crown" style="font-size:2rem; color:#f4b942;"></i> <i class="fas fa-home" style="font-size:2rem; color:#3d8f7e;"></i> <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:#4285f4;"></i></div>
         <h1><i class="fas fa-building"></i> "הכי טוב בשכונה" – ניהול בית משותף</h1>
-        <p>🌿 תקבולים חודשיים + קרן חירום | קבלות בענן | הערות להוצאות</p>
+        <p>🌿 תקבולים חודשיים + קרן חירום | עדכון סכומים | תוספת 10% אוטומטית</p>
         <div id="userInfoBar" style="margin-top: 12px;"><span class="resident-badge" id="userRoleDisplay">אורח</span></div>
     </div>
 
@@ -129,28 +132,44 @@
         <div class="month-selector" id="monthSelector"></div>
     </div>
 
+    <!-- כרטיס ניהול סכומים + כפתור העלאה ב-10% -->
+    <div class="card" id="adminSettingsCard" style="display: none;">
+        <div class="flex-between">
+            <h3><i class="fas fa-sliders-h"></i> ניהול סכומי תשלום</h3>
+            <div class="action-buttons">
+                <button id="editMonthlyDueBtn" class="btn"><i class="fas fa-edit"></i> שינוי סכום חודשי</button>
+                <button id="editEmergencyDueBtn" class="btn" style="background:#f4b942;"><i class="fas fa-ambulance"></i> שינוי קרן חירום</button>
+                <button id="increaseTenPercentBtn" class="btn increase-btn"><i class="fas fa-percent"></i> העלה הכל ב-10%</button>
+            </div>
+        </div>
+        <div class="info-note">סכום חודשי נוכחי: <strong id="displayMonthlyDue">70 ₪</strong> | קרן חירום: <strong id="displayEmergencyDue">30 ₪</strong></div>
+    </div>
+
     <div class="stats-grid" id="statsGrid"></div>
 
+    <!-- טבלת תקבולים עם כפתורי תשלום אישיים וקולקטיביים -->
     <div class="card">
         <div class="flex-between">
             <h3><i class="fas fa-hand-holding-usd"></i> תקבולים חודשיים וקרן חירום – לפי דירה</h3>
-            <div id="adminPaymentControls" style="display: none;">
-                <button id="addMonthlyPaymentBtn" class="btn secret-btn"><i class="fas fa-plus"></i> הוסף תקבול חודשי</button>
-                <button id="addEmergencyPaymentBtn" class="btn secret-btn" style="background:#f4b942;"><i class="fas fa-ambulance"></i> הוסף תשלום חירום</button>
+            <div id="adminCollectButtons" style="display: none;">
+                <button id="collectAllMonthlyBtn" class="btn collect-btn"><i class="fas fa-users"></i> גבה מכולם (חודשי)</button>
+                <button id="collectAllEmergencyBtn" class="btn collect-btn" style="background:#f4b942;"><i class="fas fa-ambulance"></i> גבה מכולם (חירום)</button>
             </div>
         </div>
         <div style="overflow-x: auto;">
             <table style="width:100%">
-                <thead><tr><th>דירה / שם</th><th>יתרה חודשית</th><th>תשלום אחרון</th><th>הכנסות חירום</th><th>פעולות</th></tr></thead>
+                <thead>
+                    <tr><th>דירה / שם</th><th>יתרה חודשית</th><th>תשלום אחרון</th><th>הכנסות חירום</th><th>פעולות אישיות</th></tr>
+                </thead>
                 <tbody id="residentsPaymentsTable"></tbody>
             </table>
         </div>
-        <div class="info-note">* סכום חודשי קבוע: <strong id="monthlyDueLabel">70 ₪</strong> | קרן חירום: <strong id="emergencyDueLabel">30 ₪</strong> לחודש</div>
+        <div class="info-note">* לחיצה על כפתור אישי תעדכן את התשלום עבור הדירה.</div>
     </div>
 
     <div class="card" style="background: #e8f3f0;">
         <div class="flex-between">
-            <div><i class="fas fa-database"></i> <strong>📊 הוצאות רגילות, הוצאות חירום והכנסות</strong> – צפייה, הורדת CSV, הערות</div>
+            <div><i class="fas fa-database"></i> <strong>📊 הוצאות רגילות, הוצאות חירום</strong> – צפייה, הורדת CSV, הערות</div>
             <div>
                 <button id="openRegularExpensesBtn" class="btn"><i class="fas fa-folder-open"></i> הוצאות רגילות</button>
                 <button id="openEmergencyExpensesBtn" class="btn" style="background:#cd7b6e;"><i class="fas fa-exclamation-triangle"></i> הוצאות חירום</button>
@@ -178,70 +197,49 @@
     </div>
 </div>
 
-<!-- מודאל רשומות + הערות -->
+<!-- מודאל רשומות -->
 <div id="dataModal" class="modal-overlay">
     <div class="modal-container">
-        <div class="flex-between">
-            <h2 id="modalTitle">📋 הוצאות רגילות</h2>
-            <button id="closeModalBtn" style="background: none; color: #c9693e; font-size: 2rem;">&times;</button>
-        </div>
+        <div class="flex-between"><h2 id="modalTitle">📋 הוצאות</h2><button id="closeModalBtn" style="background:none; color:#c9693e; font-size:2rem;">&times;</button></div>
         <div><button id="downloadCSVBtn" class="btn" style="background:#2c7a6e;"><i class="fas fa-download"></i> הורד CSV</button></div>
-        <div id="addRecordForm" style="display: none; background: #ecf6f4; padding: 16px; border-radius: 28px; margin: 16px 0;">
-            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                <input type="text" id="recordTitle" placeholder="תיאור ההוצאה" style="flex:2;">
-                <textarea id="recordComment" placeholder="הערה / פירוט" rows="1" style="flex:2;"></textarea>
-                <input type="number" id="recordAmount" placeholder="סכום ₪" step="10" style="flex:1;">
+        <div id="addRecordForm" style="display:none; background:#ecf6f4; padding:16px; border-radius:28px; margin:16px 0;">
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <input type="text" id="recordTitle" placeholder="תיאור" style="flex:2;">
+                <textarea id="recordComment" placeholder="הערה" rows="1" style="flex:2;"></textarea>
+                <input type="number" id="recordAmount" placeholder="סכום ₪" style="flex:1;">
                 <input type="month" id="recordMonth" value="2026-01" style="flex:1;">
                 <label style="background:#e2f0ec; padding:8px 18px; border-radius:40px; cursor:pointer;"><i class="fas fa-cloud-upload-alt"></i> קובץ <input type="file" id="recordFile" accept="image/*,application/pdf" style="display:none;"></label>
-                <button id="addRecordBtn" class="btn"><i class="fas fa-plus"></i> הוסף</button>
+                <button id="addRecordBtn" class="btn">הוסף</button>
             </div>
             <div id="filePreview" style="font-size:0.7rem; margin-top:6px;"></div>
         </div>
-        <div style="overflow-x:auto;">
-            <table style="width:100%"><thead><tr><th>תיאור</th><th>הערה</th><th>חודש</th><th>סכום</th><th>הוכחה</th><th></th></tr></thead><tbody id="dbTableBody"></tbody></table>
-        </div>
-        <div id="modalTotal" style="margin-top: 18px; font-weight: 800; background: #eef3f0; padding: 12px; border-radius: 32px;"></div>
+        <div style="overflow-x:auto;"><table style="width:100%"><thead><tr><th>תיאור</th><th>הערה</th><th>חודש</th><th>סכום</th><th>הוכחה</th><th></th></tr></thead><tbody id="dbTableBody"></tbody></table></div>
+        <div id="modalTotal" style="margin-top:18px; font-weight:800; background:#eef3f0; padding:12px; border-radius:32px;"></div>
     </div>
 </div>
 
 <div class="secret-admin-area" id="secretAdminTrigger"></div>
 <div class="sync-status" id="syncStatus">☁️ מתחבר...</div>
 
-<!-- חלון התחברות + הסכמה -->
+<!-- חלון התחברות -->
 <div id="loginModal" class="login-welcome-modal">
     <div class="login-card">
-        <i class="fas fa-building" style="font-size: 3rem; color: #2b9c7c;"></i>
+        <i class="fas fa-building" style="font-size:3rem; color:#2b9c7c;"></i>
         <h2>ברוכים הבאים!</h2>
-        <p>התחברות למערכת ניהול הבית המשותף</p>
-        <div class="demo-info">
-            <strong>📱 דוגמאות להתחברות:</strong><br>
-            דירה 1 → טלפון: 972501234501<br>
-            דירה 2 → טלפון: 972501234502<br>
-            דירה 3 → טלפון: 972501234503<br>
-            (וכל דירה i → 972501234500+i)
-        </div>
-        <input type="tel" id="loginPhone" placeholder="מספר טלפון (לדוגמה: 972501234501)" dir="ltr">
+        <div class="demo-info"><strong>📱 דוגמאות:</strong><br>דירה 1 → טלפון: 972501234501<br>דירה 2 → 972501234502<br>(XX = מספר דירה)</div>
+        <input type="tel" id="loginPhone" placeholder="טלפון (לדוגמה: 972501234501)" dir="ltr">
         <input type="number" id="loginApartment" placeholder="מספר דירה (1-16)">
         <div class="terms-box">
-            <strong>תנאי השימוש והסכמה:</strong><br>
-            • אני מאשר/ת כי אני דייר בבניין או נציג מטעמו.<br>
-            • המידע המוצג הינו לצורך ניהול שוטף של הבית המשותף.<br>
-            • אני מסכים/ה לקבל הודעות וואטסאפ אוטומטיות בנוגע לתשלומים והוצאות.<br>
-            • הנתונים יישמרו בענן וישמשו לצורכי דיווח בלבד.<br>
-            • לאחר ההתחברות אוכל לצפות בכל ההוצאות, הקבצים וההערות ולהוריד דוחות.
+            <strong>תנאי שימוש:</strong><br>• אני מאשר/ת כי אני דייר בבניין.<br>• המידע ישמש לניהול שוטף.<br>• לאחר ההתחברות אוכל לצפות בהוצאות ולהוריד דוחות.
         </div>
-        <div class="agree-check">
-            <input type="checkbox" id="agreeTerms"> <label for="agreeTerms">אני מאשר/ת ומסכים/ה לתנאים</label>
-        </div>
-        <button id="loginBtn" class="btn" style="width:100%;">🔐 כניסה למערכת</button>
-        <div id="loginError" style="color: red; margin-top: 12px; font-size: 0.8rem;"></div>
-        <hr style="margin: 16px 0;">
-        <button id="adminQuickBtn" style="background:#6c757d; width:100%;">👑 כניסת ועד בית (קוד סודי)</button>
+        <div class="agree-check"><input type="checkbox" id="agreeTerms"> <label for="agreeTerms">אני מאשר/ת</label></div>
+        <button id="loginBtn" class="btn" style="width:100%;">🔐 כניסה</button>
+        <div id="loginError" style="color:red; margin-top:12px;"></div>
+        <button id="adminQuickBtn" style="background:#6c757d; width:100%; margin-top:12px;">👑 כניסת ועד בית</button>
     </div>
 </div>
 
 <script>
-    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyD6Pdxh6nHHys3hHr15YH925DiBqEEKjNI",
         authDomain: "home-menegment-67459.firebaseapp.com",
@@ -255,313 +253,80 @@
     const database = firebase.database();
     const IMGBB_API_KEY = "f9bb791d0681c7cf81b6a7cd1456e4aa";
 
-    // מודלים
-    let regularExpenses = [];
-    let emergencyExpenses = [];
-    let residents = [];
-    let monthlyDue = 70;
-    let emergencyMonthlyDue = 30;
-    let currentYear = 2026;
-    let currentMonthFilter = 'all';
-    let isAdmin = false;
-    let loggedInUser = null;
-    let currentModalType = "regular";
-    let selectedFile = null;
-    let isLoading = true;
+    let regularExpenses = [], emergencyExpenses = [], residents = [];
+    let monthlyDue = 70, emergencyMonthlyDue = 30;
+    let currentYear = 2026, currentMonthFilter = 'all';
+    let isAdmin = false, loggedInUser = null, currentModalType = "regular", selectedFile = null, isLoading = true;
 
-    function updateSyncStatus(text, isError = false) {
-        const el = document.getElementById('syncStatus');
-        if(el) { el.innerHTML = text; el.style.background = isError ? 'rgba(220,50,50,0.8)' : 'rgba(0,0,0,0.7)'; }
-        setTimeout(() => { if(el && el.innerHTML === text) el.innerHTML = '☁️ מסונכרן'; }, 2000);
-    }
-
-    async function uploadToImgBB(file) {
-        return new Promise((resolve, reject) => {
-            if (!file) reject(new Error('לא נבחר קובץ'));
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                const base64 = e.target.result.split(',')[1];
-                const formData = new FormData();
-                formData.append('key', IMGBB_API_KEY);
-                formData.append('image', base64);
-                formData.append('name', file.name);
-                try {
-                    const res = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: formData });
-                    const data = await res.json();
-                    if (data.success && data.data?.url) resolve({ url: data.data.url, fileName: file.name });
-                    else reject(new Error(data.error?.message || 'שגיאה'));
-                } catch (err) { reject(err); }
-            };
-            reader.onerror = () => reject(new Error('שגיאה בקריאה'));
-            reader.readAsDataURL(file);
-        });
-    }
-
-    async function saveAllData() {
-        if(isLoading) return;
-        await database.ref('/regularExpenses').set(regularExpenses);
-        await database.ref('/emergencyExpenses').set(emergencyExpenses);
-        await database.ref('/residents').set(residents);
-        await database.ref('/monthlyDue').set(monthlyDue);
-        await database.ref('/emergencyMonthlyDue').set(emergencyMonthlyDue);
-        updateSyncStatus('☁️ נשמר');
-    }
-
+    function updateSyncStatus(text, isError=false) { let el=document.getElementById('syncStatus'); if(el){ el.innerHTML=text; el.style.background=isError?'rgba(220,50,50,0.8)':'rgba(0,0,0,0.7)'; } setTimeout(()=>{ if(el && el.innerHTML===text) el.innerHTML='☁️ מסונכרן'; },2000); }
+    async function uploadToImgBB(file) { return new Promise((resolve,reject)=>{ if(!file) reject(); const reader=new FileReader(); reader.onload=async(e)=>{ const base64=e.target.result.split(',')[1]; const fd=new FormData(); fd.append('key',IMGBB_API_KEY); fd.append('image',base64); fd.append('name',file.name); try{ const res=await fetch('https://api.imgbb.com/1/upload',{method:'POST',body:fd}); const data=await res.json(); if(data.success && data.data?.url) resolve({url:data.data.url, fileName:file.name}); else reject(); } catch(err){ reject(err); } }; reader.onerror=()=>reject(); reader.readAsDataURL(file); }); }
+    async function saveAllData() { if(isLoading) return; await database.ref('/regularExpenses').set(regularExpenses); await database.ref('/emergencyExpenses').set(emergencyExpenses); await database.ref('/residents').set(residents); await database.ref('/monthlyDue').set(monthlyDue); await database.ref('/emergencyMonthlyDue').set(emergencyMonthlyDue); updateSyncStatus('☁️ נשמר'); }
     async function loadFromFirebase() {
-        updateSyncStatus('☁️ טוען...');
-        isLoading = true;
+        updateSyncStatus('☁️ טוען...'); isLoading=true;
         try {
-            const snap = await database.ref('/').once('value');
-            const data = snap.val();
-            if(data && data.residents && data.residents.length) {
-                regularExpenses = data.regularExpenses || [];
-                emergencyExpenses = data.emergencyExpenses || [];
-                residents = data.residents;
-                monthlyDue = data.monthlyDue || 70;
-                emergencyMonthlyDue = data.emergencyMonthlyDue || 30;
-            } else {
-                // יצירת 16 דיירים עם מספרי טלפון אמיתיים לצורך בדיקה
-                residents = [];
-                for(let i=1;i<=16;i++) {
-                    residents.push({ 
-                        id: `d${i}`, 
-                        name: `דירה ${i}`, 
-                        monthlyPaid: 0, 
-                        emergencyPaid: 0, 
-                        payments: [], 
-                        phone: `9725012345${i.toString().padStart(2,'0')}`,  // 972501234501, 972501234502...
-                        lastPaymentDate: null
-                    });
-                }
-                regularExpenses = [
-                    { id: 'e1', title: 'ניקיון חדר מדרגות', comment: 'ניקיון שבועי + חומרי ניקוי', amount: 1200, month: '2026-01', cloudUrl: '', fileName: '' },
-                    { id: 'e2', title: 'תיקון מעלית', comment: 'החלפת כפתורים + בדיקה טכנאי', amount: 850, month: '2026-02', cloudUrl: '', fileName: '' }
-                ];
-                emergencyExpenses = [
-                    { id: 'ee1', title: 'תיקון דוד שמש חירום', comment: 'דירה 7 - דליפה', amount: 3200, month: '2026-01', cloudUrl: '', fileName: '' }
-                ];
+            const snap=await database.ref('/').once('value'); const data=snap.val();
+            if(data && data.residents) { regularExpenses=data.regularExpenses||[]; emergencyExpenses=data.emergencyExpenses||[]; residents=data.residents; monthlyDue=data.monthlyDue||70; emergencyMonthlyDue=data.emergencyMonthlyDue||30; }
+            else {
+                residents=[]; for(let i=1;i<=16;i++) residents.push({ id:`d${i}`, name:`דירה ${i}`, monthlyPaid:0, emergencyPaid:0, phone:`9725012345${i.toString().padStart(2,'0')}`, lastPaymentDate:null });
+                regularExpenses=[{ id:'e1', title:'ניקיון חדר מדרגות', comment:'ניקיון שבועי', amount:1200, month:'2026-01', cloudUrl:'' }];
+                emergencyExpenses=[{ id:'ee1', title:'תיקון דוד חירום', comment:'דירה 7', amount:3200, month:'2026-01', cloudUrl:'' }];
             }
-            regularExpenses = regularExpenses.filter(e => e.month >= '2026-01');
-            emergencyExpenses = emergencyExpenses.filter(e => e.month >= '2026-01');
-        } catch(e) { console.error(e); updateSyncStatus('❌ שגיאה', true); }
-        finally { isLoading = false; renderAll(); }
+            regularExpenses=regularExpenses.filter(e=>e.month>='2026-01'); emergencyExpenses=emergencyExpenses.filter(e=>e.month>='2026-01');
+        } catch(e) { console.error(e); updateSyncStatus('❌ שגיאה',true); }
+        finally { isLoading=false; renderAll(); }
     }
 
     function getYearlyTotal(type) {
-        if(type === 'regularIncome') return residents.reduce((sum, r) => sum + (r.monthlyPaid || 0), 0);
-        if(type === 'regularExpenses') return regularExpenses.filter(e => e.month.startsWith(currentYear.toString())).reduce((s,e)=>s+e.amount,0);
-        if(type === 'emergencyIncome') return residents.reduce((sum, r) => sum + (r.emergencyPaid || 0), 0);
-        if(type === 'emergencyExpenses') return emergencyExpenses.filter(e => e.month.startsWith(currentYear.toString())).reduce((s,e)=>s+e.amount,0);
+        if(type==='regularIncome') return residents.reduce((s,r)=>s+(r.monthlyPaid||0),0);
+        if(type==='regularExpenses') return regularExpenses.filter(e=>e.month.startsWith(currentYear.toString())).reduce((s,e)=>s+e.amount,0);
+        if(type==='emergencyIncome') return residents.reduce((s,r)=>s+(r.emergencyPaid||0),0);
+        if(type==='emergencyExpenses') return emergencyExpenses.filter(e=>e.month.startsWith(currentYear.toString())).reduce((s,e)=>s+e.amount,0);
         return 0;
     }
-
-    function renderMainStats() {
-        document.getElementById('statsGrid').innerHTML = `
-            <div class="stat-card card-income"><h4>💰 סך הכנסות רגילות</h4><div class="stat-number">${getYearlyTotal('regularIncome').toLocaleString()} ₪</div></div>
-            <div class="stat-card card-expense"><h4>📉 סך הוצאות רגילות</h4><div class="stat-number">${getYearlyTotal('regularExpenses').toLocaleString()} ₪</div></div>
-            <div class="stat-card card-emerg-inc"><h4>🛡️ סך הכנסות חירום</h4><div class="stat-number">${getYearlyTotal('emergencyIncome').toLocaleString()} ₪</div></div>
-            <div class="stat-card card-emerg-exp"><h4>⚠️ סך הוצאות חירום</h4><div class="stat-number">${getYearlyTotal('emergencyExpenses').toLocaleString()} ₪</div></div>
-        `;
-    }
-
+    function renderMainStats() { document.getElementById('statsGrid').innerHTML = `<div class="stat-card card-income"><h4>💰 סך הכנסות רגילות</h4><div class="stat-number">${getYearlyTotal('regularIncome').toLocaleString()} ₪</div></div><div class="stat-card card-expense"><h4>📉 סך הוצאות רגילות</h4><div class="stat-number">${getYearlyTotal('regularExpenses').toLocaleString()} ₪</div></div><div class="stat-card card-emerg-inc"><h4>🛡️ סך הכנסות חירום</h4><div class="stat-number">${getYearlyTotal('emergencyIncome').toLocaleString()} ₪</div></div><div class="stat-card card-emerg-exp"><h4>⚠️ סך הוצאות חירום</h4><div class="stat-number">${getYearlyTotal('emergencyExpenses').toLocaleString()} ₪</div></div>`; }
+    
     function renderResidentsTable() {
-        const tbody = document.getElementById('residentsPaymentsTable');
-        tbody.innerHTML = '';
-        residents.forEach(res => {
-            const monthlyBalance = monthlyDue - (res.monthlyPaid || 0);
-            const emergBalance = emergencyMonthlyDue - (res.emergencyPaid || 0);
-            tbody.innerHTML += `
-                <tr>
-                    <td><strong>${res.name}</strong><br><span style="font-size:0.7rem;">📞 ${res.phone}</span></td>
-                    <td><span class="debt-badge" style="${monthlyBalance>0?'background:#fef3e0':''}">${monthlyBalance>0 ? `יתרה: ${monthlyBalance.toFixed(2)} ₪` : 'מאוזן ✅'}</span></td>
-                    <td>${res.lastPaymentDate || 'לא שולם'}</td>
-                    <td><span class="debt-badge">שולם: ${(res.emergencyPaid||0).toFixed(2)} / ${emergencyMonthlyDue} ₪</span></td>
-                    <td>${isAdmin ? `<button onclick="markMonthlyPaid('${res.id}')" style="background:#2b9c7c;">✔️ חודשי</button> <button onclick="markEmergencyPaid('${res.id}')" style="background:#f4b942;">⚠️ חירום</button>` : '🔒 צפייה בלבד'}</td>
-                </tr>
-            `;
+        const tbody=document.getElementById('residentsPaymentsTable'); tbody.innerHTML='';
+        residents.forEach(res=>{
+            const monthlyBalance=monthlyDue-(res.monthlyPaid||0); const emergBalance=emergencyMonthlyDue-(res.emergencyPaid||0);
+            tbody.innerHTML+=`<tr><td><strong>${res.name}</strong><br><span style="font-size:0.7rem;">📞 ${res.phone}</span></td><td><span class="debt-badge">${monthlyBalance>0?`יתרה: ${monthlyBalance.toFixed(2)} ₪`:'מאוזן ✅'}</span></td><td>${res.lastPaymentDate||'לא שולם'}</td><td><span class="debt-badge">שולם: ${(res.emergencyPaid||0).toFixed(2)} / ${emergencyMonthlyDue} ₪</span></td><td>${isAdmin? `<button class="btn" style="background:#2b9c7c;" onclick="payMonthly('${res.id}')">✔️ חודשי</button> <button class="btn" style="background:#f4b942;" onclick="payEmergency('${res.id}')">⚠️ חירום</button>`:'🔒 צפייה'}</td></tr>`;
         });
-        document.getElementById('monthlyDueLabel').innerHTML = `${monthlyDue} ₪`;
-        document.getElementById('emergencyDueLabel').innerHTML = `${emergencyMonthlyDue} ₪`;
+        document.getElementById('displayMonthlyDue').innerHTML=`${monthlyDue} ₪`; document.getElementById('displayEmergencyDue').innerHTML=`${emergencyMonthlyDue} ₪`;
+        document.getElementById('monthlyDueLabel')&&(document.getElementById('monthlyDueLabel').innerHTML=`${monthlyDue} ₪`);
+        document.getElementById('emergencyDueLabel')&&(document.getElementById('emergencyDueLabel').innerHTML=`${emergencyMonthlyDue} ₪`);
     }
+    window.payMonthly=async(id)=>{ if(isAdmin){ let r=residents.find(r=>r.id===id); if(r){ r.monthlyPaid=monthlyDue; r.lastPaymentDate=new Date().toLocaleDateString('he-IL'); await saveAllData(); renderResidentsTable(); renderMainStats(); } } };
+    window.payEmergency=async(id)=>{ if(isAdmin){ let r=residents.find(r=>r.id===id); if(r){ r.emergencyPaid=emergencyMonthlyDue; await saveAllData(); renderResidentsTable(); renderMainStats(); } } };
+    async function collectAllMonthly(){ if(isAdmin){ residents.forEach(r=>{ r.monthlyPaid=monthlyDue; r.lastPaymentDate=new Date().toLocaleDateString('he-IL'); }); await saveAllData(); renderResidentsTable(); renderMainStats(); alert("כל הדיירים שילמו את הסכום החודשי!"); } }
+    async function collectAllEmergency(){ if(isAdmin){ residents.forEach(r=>{ r.emergencyPaid=emergencyMonthlyDue; }); await saveAllData(); renderResidentsTable(); renderMainStats(); alert("כל הדיירים שילמו את קרן החירום!"); } }
+    async function increaseAllByTenPercent(){ if(!isAdmin) return; if(confirm("האם להעלות את כל הסכומים (חודשי + קרן חירום) ב-10%?")){ monthlyDue=Math.round(monthlyDue*1.1); emergencyMonthlyDue=Math.round(emergencyMonthlyDue*1.1); await saveAllData(); renderResidentsTable(); renderMainStats(); alert(`הסכומים עודכנו: חודשי = ${monthlyDue} ₪, קרן חירום = ${emergencyMonthlyDue} ₪`); } }
+    async function editMonthlyDue(){ if(!isAdmin) return; let newVal=prompt("סכום חודשי חדש (₪):", monthlyDue); if(newVal && !isNaN(parseFloat(newVal))){ monthlyDue=parseFloat(newVal); await saveAllData(); renderResidentsTable(); renderMainStats(); } }
+    async function editEmergencyDue(){ if(!isAdmin) return; let newVal=prompt("סכום קרן חירום חדש (₪):", emergencyMonthlyDue); if(newVal && !isNaN(parseFloat(newVal))){ emergencyMonthlyDue=parseFloat(newVal); await saveAllData(); renderResidentsTable(); renderMainStats(); } }
 
-    window.markMonthlyPaid = async (id) => { 
-        if(isAdmin){ 
-            let r=residents.find(r=>r.id===id); 
-            if(r){ 
-                r.monthlyPaid=monthlyDue; 
-                r.lastPaymentDate=new Date().toLocaleDateString('he-IL'); 
-                await saveAllData(); 
-                renderResidentsTable(); 
-                renderMainStats(); 
-            } 
-        } 
-    };
-    window.markEmergencyPaid = async (id) => { 
-        if(isAdmin){ 
-            let r=residents.find(r=>r.id===id); 
-            if(r){ 
-                r.emergencyPaid=emergencyMonthlyDue; 
-                await saveAllData(); 
-                renderResidentsTable(); 
-                renderMainStats(); 
-            } 
-        } 
-    };
-
-    function renderModalTable() {
-        const data = currentModalType === 'regular' ? regularExpenses : emergencyExpenses;
-        let filtered = data.filter(d => currentMonthFilter === 'all' ? d.month.startsWith(currentYear.toString()) : d.month === currentMonthFilter);
-        const tbody = document.getElementById('dbTableBody');
-        tbody.innerHTML = '';
-        let total = 0;
-        filtered.forEach(rec => {
-            total += rec.amount;
-            tbody.innerHTML += `
-                <tr>
-                    <td>${rec.title}</td>
-                    <td><span class="comment-text">${rec.comment || ''}</span></td>
-                    <td>${rec.month}</td>
-                    <td class="amount-expense">${rec.amount.toFixed(2)} ₪</td>
-                    <td>${rec.cloudUrl ? `<i class="fas fa-cloud-upload-alt attachment-icon" onclick="window.open('${rec.cloudUrl}','_blank')"></i>` : '❌'}</td>
-                    <td>${isAdmin ? `<i class="fas fa-trash-alt delete-icon" onclick="deleteRecord('${rec.id}')"></i>` : ''}</td>
-                </tr>
-            `;
-        });
-        document.getElementById('modalTotal').innerHTML = `📌 סה"כ לתקופה: ${total.toLocaleString()} ₪`;
-    }
-
-    window.deleteRecord = async (id) => {
-        if(!isAdmin) return;
-        if(confirm("למחוק רשומה?")) {
-            if(currentModalType === 'regular') regularExpenses = regularExpenses.filter(r => r.id !== id);
-            else emergencyExpenses = emergencyExpenses.filter(r => r.id !== id);
-            await saveAllData();
-            renderModalTable();
-            renderMainStats();
-        }
-    };
-
-    async function addNewRecord() {
-        if(!isAdmin) return;
-        let title = document.getElementById('recordTitle').value.trim();
-        let comment = document.getElementById('recordComment').value.trim();
-        let amount = parseFloat(document.getElementById('recordAmount').value);
-        let month = document.getElementById('recordMonth').value;
-        if(!title || isNaN(amount) || amount<=0) { alert("תיאור וסכום תקין"); return; }
-        let cloudUrl = '', fileName = '';
-        if(selectedFile) {
-            try { const up = await uploadToImgBB(selectedFile); cloudUrl = up.url; fileName = up.fileName; } catch(err) { alert("שגיאת העלאה"); return; }
-        }
-        const newRec = { id: Date.now().toString(), title, comment, amount, month, cloudUrl, fileName };
-        if(currentModalType === 'regular') regularExpenses.push(newRec);
-        else emergencyExpenses.push(newRec);
-        await saveAllData();
-        document.getElementById('recordTitle').value = ''; document.getElementById('recordComment').value = '';
-        document.getElementById('recordAmount').value = ''; selectedFile = null; document.getElementById('recordFile').value = '';
-        renderModalTable(); renderMainStats();
-    }
-
-    function downloadCSV() {
-        const data = currentModalType === 'regular' ? regularExpenses : emergencyExpenses;
-        let filtered = data.filter(d => currentMonthFilter === 'all' ? d.month.startsWith(currentYear.toString()) : d.month === currentMonthFilter);
-        const rows = [["תיאור","הערה","חודש","סכום","קישור"]];
-        filtered.forEach(r => rows.push([r.title, r.comment || '', r.month, r.amount, r.cloudUrl || '']));
-        const csv = rows.map(row => row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(",")).join("\n");
-        const blob = new Blob(["\uFEFF" + csv], {type: "text/csv;charset=utf-8"});
-        const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
-        link.download = `${currentModalType}_expenses_${currentYear}.csv`; link.click(); URL.revokeObjectURL(link.href);
-    }
-
-    // פורום
-    let forum = [], suggestions = [];
-    async function loadForum() {
-        const f = await database.ref('/forum').once('value');
-        const s = await database.ref('/suggestions').once('value');
-        if(f.exists()) forum = f.val();
-        if(s.exists()) suggestions = s.val();
-        if(!forum.length) forum = [{ id:'f1', author:'מערכת', text:'ברוכים הבאים!', timestamp:new Date().toISOString() }];
-        renderForum();
-    }
-    function renderForum() {
-        document.getElementById('forumContainer').innerHTML = forum.slice().reverse().map(f => `<div style="background:#fefef7; border-radius:24px; padding:12px; margin-bottom:12px;"><strong>${escapeHtml(f.author)}</strong> <small>${new Date(f.timestamp).toLocaleDateString()}</small><div>${escapeHtml(f.text)}</div></div>`).join('');
-        document.getElementById('suggestionsContainer').innerHTML = suggestions.map(s => `<div style="background:#fefef7; border-radius:24px; padding:12px; margin-bottom:12px;"><strong>${escapeHtml(s.author)}</strong> מציע: ${escapeHtml(s.title)} ${isAdmin ? `<i class="fas fa-trash-alt delete-icon" onclick="deleteSuggestion('${s.id}')"></i>` : ''}<div><button class="vote-up" data-id="${s.id}">👍 ${s.up||0}</button> <button class="vote-down" data-id="${s.id}">👎 ${s.down||0}</button></div></div>`).join('');
-        document.querySelectorAll('.vote-up').forEach(b => b.onclick = () => { let sug=suggestions.find(s=>s.id===b.dataset.id); if(sug){ sug.up=(sug.up||0)+1; saveForum(); renderForum(); } });
-        document.querySelectorAll('.vote-down').forEach(b => b.onclick = () => { let sug=suggestions.find(s=>s.id===b.dataset.id); if(sug){ sug.down=(sug.down||0)+1; saveForum(); renderForum(); } });
-    }
-    async function saveForum() { await database.ref('/forum').set(forum); await database.ref('/suggestions').set(suggestions); }
-    function addForumMessage() { let a=document.getElementById('forumName').value.trim(), t=document.getElementById('forumMsg').value.trim(); if(a&&t){ forum.push({id:Date.now().toString(), author:a, text:t, timestamp:new Date().toISOString()}); saveForum(); renderForum(); document.getElementById('forumName').value=''; document.getElementById('forumMsg').value=''; } }
-    function addSuggestion() { let a=document.getElementById('suggAuthor').value.trim(), t=document.getElementById('suggTitle').value.trim(); if(a&&t){ suggestions.push({id:Date.now().toString(), author:a, title:t, up:0, down:0}); saveForum(); renderForum(); document.getElementById('suggAuthor').value=''; document.getElementById('suggTitle').value=''; } }
-    window.deleteSuggestion = async (id) => { if(isAdmin) { suggestions=suggestions.filter(s=>s.id!==id); await saveForum(); renderForum(); } };
-    function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
-
-    function initSelectors() {
-        const yearDiv = document.getElementById('yearSelector');
-        yearDiv.innerHTML = ['2026','2027','2028','2029','2030'].map(y => `<button class="year-btn ${currentYear==y?'active':''}" data-year="${y}">${y}</button>`).join('');
-        document.querySelectorAll('.year-btn').forEach(btn => btn.onclick = () => { currentYear = parseInt(btn.dataset.year); currentMonthFilter = 'all'; initMonthSelector(); renderAll(); });
-        initMonthSelector();
-    }
-    function initMonthSelector() {
-        const monthDiv = document.getElementById('monthSelector');
-        monthDiv.innerHTML = `<button class="month-btn ${currentMonthFilter==='all'?'active':''}" data-month="all">כל החודשים</button>`;
-        for(let m=1;m<=12;m++) { const mon = `${currentYear}-${m.toString().padStart(2,'0')}`; monthDiv.innerHTML += `<button class="month-btn ${currentMonthFilter===mon?'active':''}" data-month="${mon}">${mon}</button>`; }
-        document.querySelectorAll('.month-btn').forEach(btn => btn.onclick = () => { currentMonthFilter = btn.dataset.month; renderAll(); });
-    }
-    function renderAll() { if(!loggedInUser && !isAdmin) return; renderMainStats(); renderResidentsTable(); if(document.getElementById('dataModal').classList.contains('active')) renderModalTable(); renderForum(); }
-
-    // התחברות דייר
-    function handleLogin() {
-        const phone = document.getElementById('loginPhone').value.trim();
-        const apartment = parseInt(document.getElementById('loginApartment').value);
-        const agree = document.getElementById('agreeTerms').checked;
-        if(!agree) { document.getElementById('loginError').innerText = "יש לאשר את תנאי השימוש"; return; }
-        if(!phone || isNaN(apartment) || apartment<1 || apartment>16) { document.getElementById('loginError').innerText = "טלפון או מספר דירה לא תקין"; return; }
-        const resident = residents.find(r => r.name === `דירה ${apartment}` && r.phone === phone);
-        if(resident) {
-            loggedInUser = { name: resident.name, apartment, phone };
-            document.getElementById('userRoleDisplay').innerHTML = `🏠 ${resident.name} מחובר/ת`;
-            document.getElementById('loginModal').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            renderAll();
-        } else { 
-            document.getElementById('loginError').innerHTML = "הטלפון או מספר הדירה לא תואמים.<br> נסה: טלפון 9725012345XX (XX = מספר דירה)"; 
-        }
-    }
-
-    // כניסת ועד בית
-    let clickCount=0;
-    function showAdminLogin() {
-        let pwd = prompt("הזן קוד גישה לוועד בית:");
-        if(pwd === "bafy2020") {
-            isAdmin = true;
-            loggedInUser = { name: "ועד בית", apartment: 0, phone: "admin" };
-            document.getElementById('userRoleDisplay').innerHTML = "👑 ועד בית (מנהל מערכת)";
-            document.getElementById('adminPaymentControls').style.display = 'flex';
-            document.getElementById('addRecordForm').style.display = 'flex';
-            document.getElementById('loginModal').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            renderAll();
-            alert("ברוך הבא! כעת ניתן לנהל תקבולים, הוצאות, הערות, ולהעלות קבצים.");
-        } else alert("קוד שגוי!");
-    }
-
-    document.getElementById('secretAdminTrigger').addEventListener('click', () => {
-        clickCount++;
-        if(clickCount>=3) { showAdminLogin(); clickCount=0; }
-        setTimeout(() => { clickCount = 0; }, 1000);
-    });
-    document.getElementById('adminQuickBtn').onclick = showAdminLogin;
-
-    document.getElementById('openRegularExpensesBtn').onclick = () => { currentModalType='regular'; document.getElementById('modalTitle').innerHTML='📋 הוצאות רגילות + הערות'; renderModalTable(); document.getElementById('dataModal').classList.add('active'); };
-    document.getElementById('openEmergencyExpensesBtn').onclick = () => { currentModalType='emergency'; document.getElementById('modalTitle').innerHTML='⚠️ הוצאות חירום + הערות'; renderModalTable(); document.getElementById('dataModal').classList.add('active'); };
-    document.getElementById('closeModalBtn').onclick = () => document.getElementById('dataModal').classList.remove('active');
-    document.getElementById('downloadCSVBtn').onclick = downloadCSV;
-    document.getElementById('addRecordBtn').onclick = addNewRecord;
-    document.getElementById('recordFile').addEventListener('change', (e) => { if(e.target.files[0]) { selectedFile=e.target.files[0]; document.getElementById('filePreview').innerHTML=`<i class="fas fa-file"></i> ${selectedFile.name}`; } else { selectedFile=null; document.getElementById('filePreview').innerHTML=''; } });
-    document.getElementById('postMsgBtn').onclick = addForumMessage;
-    document.getElementById('addSuggBtn').onclick = addSuggestion;
-    document.getElementById('loginBtn').onclick = handleLogin;
-
-    loadFromFirebase().then(() => { loadForum(); initSelectors(); });
+    function renderModalTable(){ let data=currentModalType==='regular'?regularExpenses:emergencyExpenses; let filtered=data.filter(d=>currentMonthFilter==='all'?d.month.startsWith(currentYear.toString()):d.month===currentMonthFilter); let tbody=document.getElementById('dbTableBody'); tbody.innerHTML=''; let total=0; filtered.forEach(rec=>{ total+=rec.amount; tbody.innerHTML+=`<tr><td>${rec.title}</td><td class="comment-text">${rec.comment||''}</td><td>${rec.month}</td><td class="amount-expense">${rec.amount.toFixed(2)} ₪</td><td>${rec.cloudUrl?`<i class="fas fa-cloud-upload-alt attachment-icon" onclick="window.open('${rec.cloudUrl}','_blank')"></i>`:'❌'}</td><td>${isAdmin?`<i class="fas fa-trash-alt delete-icon" onclick="deleteRecord('${rec.id}')"></i>`:''}</td></tr>`; }); document.getElementById('modalTotal').innerHTML=`📌 סה"כ לתקופה: ${total.toLocaleString()} ₪`; }
+    window.deleteRecord=async(id)=>{ if(!isAdmin) return; if(confirm("למחוק?")){ if(currentModalType==='regular') regularExpenses=regularExpenses.filter(r=>r.id!==id); else emergencyExpenses=emergencyExpenses.filter(r=>r.id!==id); await saveAllData(); renderModalTable(); renderMainStats(); } };
+    async function addNewRecord(){ if(!isAdmin) return; let title=document.getElementById('recordTitle').value.trim(), comment=document.getElementById('recordComment').value.trim(), amount=parseFloat(document.getElementById('recordAmount').value), month=document.getElementById('recordMonth').value; if(!title||isNaN(amount)||amount<=0){ alert("תיאור וסכום תקין"); return; } let cloudUrl='',fileName=''; if(selectedFile){ try{ const up=await uploadToImgBB(selectedFile); cloudUrl=up.url; fileName=up.fileName; } catch(err){ alert("שגיאת העלאה"); return; } } const newRec={id:Date.now().toString(),title,comment,amount,month,cloudUrl,fileName}; if(currentModalType==='regular') regularExpenses.push(newRec); else emergencyExpenses.push(newRec); await saveAllData(); document.getElementById('recordTitle').value=''; document.getElementById('recordComment').value=''; document.getElementById('recordAmount').value=''; selectedFile=null; document.getElementById('recordFile').value=''; renderModalTable(); renderMainStats(); }
+    function downloadCSV(){ let data=currentModalType==='regular'?regularExpenses:emergencyExpenses; let filtered=data.filter(d=>currentMonthFilter==='all'?d.month.startsWith(currentYear.toString()):d.month===currentMonthFilter); let rows=[["תיאור","הערה","חודש","סכום","קישור"]]; filtered.forEach(r=>rows.push([r.title,r.comment||'',r.month,r.amount,r.cloudUrl||''])); let csv=rows.map(row=>row.map(cell=>`"${String(cell).replace(/"/g,'""')}"`).join(",")).join("\n"); let blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}); let link=document.createElement('a'); link.href=URL.createObjectURL(blob); link.download=`${currentModalType}_expenses_${currentYear}.csv`; link.click(); URL.revokeObjectURL(link.href); }
+    let forum=[],suggestions=[]; async function loadForum(){ let f=await database.ref('/forum').once('value'); let s=await database.ref('/suggestions').once('value'); if(f.exists()) forum=f.val(); if(s.exists()) suggestions=s.val(); if(!forum.length) forum=[{id:'f1',author:'מערכת',text:'ברוכים הבאים!',timestamp:new Date().toISOString()}]; renderForum(); }
+    function renderForum(){ document.getElementById('forumContainer').innerHTML=forum.slice().reverse().map(f=>`<div style="background:#fefef7; border-radius:24px; padding:12px; margin-bottom:12px;"><strong>${escapeHtml(f.author)}</strong> <small>${new Date(f.timestamp).toLocaleDateString()}</small><div>${escapeHtml(f.text)}</div></div>`).join(''); document.getElementById('suggestionsContainer').innerHTML=suggestions.map(s=>`<div style="background:#fefef7; border-radius:24px; padding:12px; margin-bottom:12px;"><strong>${escapeHtml(s.author)}</strong> מציע: ${escapeHtml(s.title)} ${isAdmin?`<i class="fas fa-trash-alt delete-icon" onclick="deleteSuggestion('${s.id}')"></i>`:''}<div><button class="vote-up" data-id="${s.id}">👍 ${s.up||0}</button> <button class="vote-down" data-id="${s.id}">👎 ${s.down||0}</button></div></div>`).join(''); document.querySelectorAll('.vote-up').forEach(b=>b.onclick=()=>{ let sug=suggestions.find(s=>s.id===b.dataset.id); if(sug){ sug.up=(sug.up||0)+1; saveForum(); renderForum(); } }); document.querySelectorAll('.vote-down').forEach(b=>b.onclick=()=>{ let sug=suggestions.find(s=>s.id===b.dataset.id); if(sug){ sug.down=(sug.down||0)+1; saveForum(); renderForum(); } }); }
+    async function saveForum(){ await database.ref('/forum').set(forum); await database.ref('/suggestions').set(suggestions); }
+    function addForumMessage(){ let a=document.getElementById('forumName').value.trim(), t=document.getElementById('forumMsg').value.trim(); if(a&&t){ forum.push({id:Date.now().toString(),author:a,text:t,timestamp:new Date().toISOString()}); saveForum(); renderForum(); document.getElementById('forumName').value=''; document.getElementById('forumMsg').value=''; } }
+    function addSuggestion(){ let a=document.getElementById('suggAuthor').value.trim(), t=document.getElementById('suggTitle').value.trim(); if(a&&t){ suggestions.push({id:Date.now().toString(),author:a,title:t,up:0,down:0}); saveForum(); renderForum(); document.getElementById('suggAuthor').value=''; document.getElementById('suggTitle').value=''; } }
+    window.deleteSuggestion=async(id)=>{ if(isAdmin){ suggestions=suggestions.filter(s=>s.id!==id); await saveForum(); renderForum(); } }
+    function escapeHtml(str){ return str.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+    function initSelectors(){ let yearDiv=document.getElementById('yearSelector'); yearDiv.innerHTML=['2026','2027','2028','2029','2030'].map(y=>`<button class="year-btn ${currentYear==y?'active':''}" data-year="${y}">${y}</button>`).join(''); document.querySelectorAll('.year-btn').forEach(btn=>btn.onclick=()=>{ currentYear=parseInt(btn.dataset.year); currentMonthFilter='all'; initMonthSelector(); renderAll(); }); initMonthSelector(); }
+    function initMonthSelector(){ let monthDiv=document.getElementById('monthSelector'); monthDiv.innerHTML=`<button class="month-btn ${currentMonthFilter==='all'?'active':''}" data-month="all">כל החודשים</button>`; for(let m=1;m<=12;m++){ let mon=`${currentYear}-${m.toString().padStart(2,'0')}`; monthDiv.innerHTML+=`<button class="month-btn ${currentMonthFilter===mon?'active':''}" data-month="${mon}">${mon}</button>`; } document.querySelectorAll('.month-btn').forEach(btn=>btn.onclick=()=>{ currentMonthFilter=btn.dataset.month; renderAll(); }); }
+    function renderAll(){ if(!loggedInUser&&!isAdmin) return; renderMainStats(); renderResidentsTable(); if(document.getElementById('dataModal').classList.contains('active')) renderModalTable(); renderForum(); }
+    function handleLogin(){ let phone=document.getElementById('loginPhone').value.trim(); let apartment=parseInt(document.getElementById('loginApartment').value); let agree=document.getElementById('agreeTerms').checked; if(!agree){ document.getElementById('loginError').innerText="יש לאשר תנאים"; return; } if(!phone||isNaN(apartment)||apartment<1||apartment>16){ document.getElementById('loginError').innerText="פרטים שגויים"; return; } let resident=residents.find(r=>r.name===`דירה ${apartment}` && r.phone===phone); if(resident){ loggedInUser={name:resident.name,apartment,phone}; document.getElementById('userRoleDisplay').innerHTML=`🏠 ${resident.name} מחובר/ת`; document.getElementById('loginModal').style.display='none'; document.getElementById('mainApp').style.display='block'; renderAll(); } else { document.getElementById('loginError').innerHTML="הטלפון או הדירה לא תואמים"; } }
+    function showAdminLogin(){ let pwd=prompt("קוד גישה לוועד בית:"); if(pwd==="bafy2020"){ isAdmin=true; loggedInUser={name:"ועד בית",apartment:0,phone:"admin"}; document.getElementById('userRoleDisplay').innerHTML="👑 ועד בית (מנהל)"; document.getElementById('adminSettingsCard').style.display='block'; document.getElementById('adminCollectButtons').style.display='flex'; document.getElementById('addRecordForm').style.display='flex'; document.getElementById('loginModal').style.display='none'; document.getElementById('mainApp').style.display='block'; renderAll(); alert("ברוך הבא! כעת ניתן לנהל הכל."); } else alert("קוד שגוי!"); }
+    let clickCount=0; document.getElementById('secretAdminTrigger').addEventListener('click',()=>{ clickCount++; if(clickCount>=3){ showAdminLogin(); clickCount=0; } setTimeout(()=>{ clickCount=0; },1000); });
+    document.getElementById('adminQuickBtn').onclick=showAdminLogin; document.getElementById('editMonthlyDueBtn').onclick=editMonthlyDue; document.getElementById('editEmergencyDueBtn').onclick=editEmergencyDue; document.getElementById('increaseTenPercentBtn').onclick=increaseAllByTenPercent; document.getElementById('collectAllMonthlyBtn').onclick=collectAllMonthly; document.getElementById('collectAllEmergencyBtn').onclick=collectAllEmergency;
+    document.getElementById('openRegularExpensesBtn').onclick=()=>{ currentModalType='regular'; document.getElementById('modalTitle').innerHTML='📋 הוצאות רגילות'; renderModalTable(); document.getElementById('dataModal').classList.add('active'); };
+    document.getElementById('openEmergencyExpensesBtn').onclick=()=>{ currentModalType='emergency'; document.getElementById('modalTitle').innerHTML='⚠️ הוצאות חירום'; renderModalTable(); document.getElementById('dataModal').classList.add('active'); };
+    document.getElementById('closeModalBtn').onclick=()=>document.getElementById('dataModal').classList.remove('active'); document.getElementById('downloadCSVBtn').onclick=downloadCSV; document.getElementById('addRecordBtn').onclick=addNewRecord;
+    document.getElementById('recordFile').addEventListener('change',(e)=>{ if(e.target.files[0]){ selectedFile=e.target.files[0]; document.getElementById('filePreview').innerHTML=`<i class="fas fa-file"></i> ${selectedFile.name}`; } else { selectedFile=null; document.getElementById('filePreview').innerHTML=''; } });
+    document.getElementById('postMsgBtn').onclick=addForumMessage; document.getElementById('addSuggBtn').onclick=addSuggestion; document.getElementById('loginBtn').onclick=handleLogin;
+    loadFromFirebase().then(()=>{ loadForum(); initSelectors(); });
 </script>
 </body>
 </html>
