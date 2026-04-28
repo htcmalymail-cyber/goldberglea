@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אינדקס אחד - ניהול בית משותף</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .nav-bar {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            color: #4a5568;
+        }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .nav-btn:hover:not(.active) {
+            background: #e2e8f0;
+        }
+        .nav-btn.hidden-nav {
+            display: none;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 28px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-right: 4px solid #667eea;
+            padding-right: 14px;
+            margin-bottom: 1.2rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 24px;
+            padding: 20px;
+            color: white;
+        }
+        .stat-card.income { background: linear-gradient(135deg, #11998e, #38ef7d); }
+        .stat-card.expense { background: linear-gradient(135deg, #eb3349, #f45c43); }
+        .stat-card.emergency { background: linear-gradient(135deg, #f2994a, #f2c94c); }
+        .stat-card.balance { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .stat-card.special-fund { background: linear-gradient(135deg, #8e2de2, #4a00e0); }
+        .stat-card h3 { font-size: 0.9rem; opacity: 0.9; margin-bottom: 10px; }
+        .stat-card .value { font-size: 1.8rem; font-weight: 800; }
+        .stat-card .sub { font-size: 0.8rem; opacity: 0.8; margin-top: 8px; }
+        .summary-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: center;
+            background: #f7fafc;
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+        .summary-item {
+            flex: 1;
+            text-align: center;
+            min-width: 150px;
+            background: white;
+            border-radius: 16px;
+            padding: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .summary-item strong { display: block; font-size: 0.9rem; color: #4a5568; margin-bottom: 8px; }
+        .summary-item span { font-size: 1.6rem; font-weight: 800; }
+        .summary-item.total-income span { color: #38a169; }
+        .summary-item.total-expenses span { color: #e53e3e; }
+        .summary-item.total-balance span { color: #667eea; }
+        .monthly-fee-editor {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #edf2f7;
+            padding: 12px 20px;
+            border-radius: 40px;
+            flex-wrap: wrap;
+        }
+        .monthly-fee-editor label { font-weight: bold; color: #2d3748; }
+        .monthly-fee-editor input { width: 120px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f7fafc; font-weight: 600; }
+        .amount-positive { color: #38a169; font-weight: bold; }
+        .amount-negative { color: #e53e3e; font-weight: bold; }
+        .form-group { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+        input, select, textarea { padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0; font-family: inherit; font-size: 0.9rem; }
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+        button:hover { transform: translateY(-2px); }
+        .filter-bar { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+        .auth-card { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .auth-card input { background: white; border: none; }
+        .auth-card button { background: white; color: #667eea; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000; }
+        .modal-content { background: white; border-radius: 24px; padding: 25px; max-width: 500px; width: 90%; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .forum-message { background: #f7fafc; border-radius: 16px; padding: 12px; margin-bottom: 12px; border-right: 4px solid #667eea; }
+        .delete-btn, .edit-btn, .vote-btn, .whatsapp-btn, .delete-announcement-btn, .clear-forum-btn, .clear-votes-btn { padding: 4px 8px; margin: 0 3px; font-size: 0.75rem; }
+        .delete-btn { background: #e53e3e; }
+        .edit-btn { background: #ed8936; }
+        .vote-btn { background: #38a169; }
+        .whatsapp-btn { background: #25D366; }
+        .delete-announcement-btn { background: #e53e3e; }
+        .clear-forum-btn, .clear-votes-btn { background: #e53e3e; }
+        .resident-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #e2e8f0; }
+        .sync-status { position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; z-index: 999; }
+        .admin-badge { position: fixed; bottom: 20px; left: 20px; background: linear-gradient(135deg, #667eea, #764ba2); padding: 12px 24px; border-radius: 50px; cursor: pointer; z-index: 999; color: white; font-weight: bold; border: none; }
+        .recommendation-card, .announcement-card { background: white; border-radius: 16px; padding: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .progress-bar { background: #e2e8f0; border-radius: 10px; height: 8px; overflow: hidden; margin: 8px 0; }
+        .progress-fill { background: #38a169; height: 100%; transition: width 0.3s; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; }
+        .badge-success { background: #c6f6d5; color: #22543d; }
+        .popup-announcement {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; border-radius: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            z-index: 20000; width: 90%; max-width: 450px; direction: rtl; overflow: hidden;
+        }
+        .popup-announcement-header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; font-weight: bold; font-size: 1.2rem; }
+        .popup-announcement-body { padding: 20px; color: #2d3748; line-height: 1.5; }
+        .popup-announcement-footer { padding: 15px 20px; background: #f7fafc; display: flex; justify-content: flex-end; gap: 10px; }
+        .close-popup-btn { background: #e53e3e; }
+        @media (max-width: 768px) {
+            .nav-bar { flex-direction: column; text-align: center; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .summary-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="nav-bar">
+    <div class="logo">🏢 אינדקס אחד</div>
+    <div class="nav-links">
+        <button class="nav-btn active" data-page="dashboard">📊 לוח בקרה</button>
+        <button class="nav-btn" data-page="income" id="incomeNavBtn">💰 הכנסות</button>
+        <button class="nav-btn" data-page="expenses" id="expensesNavBtn">📝 הוצאות</button>
+        <button class="nav-btn" data-page="residents" id="residentsNavBtn" style="display: none;">👥 דיירים</button>
+        <button class="nav-btn" data-page="announcements" id="announcementsNavBtn">📢 הודעות רשמיות</button>
+    </div>
+    <div id="userInfo" style="display: flex; gap: 10px; align-items: center;">
+        <span id="userName"></span>
+        <button id="logoutBtn" style="background: #e53e3e; padding: 6px 12px; display: none;">יציאה</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card auth-card" id="authCard">
+        <div class="card-title" style="color: white; border-right-color: white;"><i class="fas fa-key"></i> כניסה לדיירים</div>
+        <div class="form-group"><input type="tel" id="authPhone" placeholder="טלפון (לדוגמה 972501234567)" dir="ltr" style="flex: 1;"><input type="text" id="authApartment" placeholder="מספר דירה או שם" style="flex: 1;"><button id="authCheckBtn"><i class="fas fa-sign-in-alt"></i> כניסה</button></div>
+        <div id="authStatus" style="font-size: 0.85rem; margin-top: 10px;"><i class="fas fa-info-circle"></i> רק דיירים מורשים יכולים לגשת לפורום והצבעות.</div>
+    </div>
+
+    <div id="dashboardPage" class="page active">
+        <div class="stats-grid">
+            <div class="stat-card income"><h3><i class="fas fa-calendar-check"></i> תשלומים חודשיים</h3><div class="value" id="totalMonthlyFees">0 ₪</div><div class="sub">נאסף החודש</div></div>
+            <div class="stat-card expense"><h3><i class="fas fa-chart-line"></i> הוצאות חודשיות</h3><div class="value" id="totalMonthlyExpenses">0 ₪</div><div class="sub">הוצאות רגילות החודש</div></div>
+            <div class="stat-card emergency"><h3><i class="fas fa-ambulance"></i> הוצאות חירום</h3><div class="value" id="totalEmergencyExpenses">0 ₪</div><div class="sub">סה"כ הוצאות חירום</div></div>
+            <div class="stat-card special-fund"><h3><i class="fas fa-piggy-bank"></i> קרן מיוחדת (חיסכון)</h3><div class="value" id="totalSpecialFund">0 ₪</div><div class="sub">יתרת תשלומים מיוחדים לאחר ניכוי חירום</div></div>
+            <div class="stat-card balance"><h3><i class="fas fa-wallet"></i> קופה ראשית</h3><div class="value" id="mainCashBalance">0 ₪</div><div class="sub">הכנסות רגילות - הוצאות רגילות</div></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><i class="fas fa-chart-pie"></i> סיכום כללי</div>
+            <div class="summary-row">
+                <div class="summary-item total-income"><strong>💰 סך הכנסות</strong><span id="totalIncome">0 ₪</span></div>
+                <div class="summary-item total-expenses"><strong>📉 סך הוצאות</strong><span id="totalExpensesAll">0 ₪</span></div>
+                <div class="summary-item total-balance"><strong>⚖️ יתרה כוללת</strong><span id="totalBalanceAll">0 ₪</span></div>
+            </div>
+        </div>
+
+        <!-- כרטיס דוח אישי (למשתמש מחובר) -->
+        <div class="card" id="personalReportCardDashboard" style="display: none;">
+            <div class="card-title"><i class="fas fa-user-chart"></i> הדוח האישי שלי</div>
+            <div class="form-group">
+                <button id="downloadPersonalReportDashboardBtn" style="background:#38a169;"><i class="fas fa-download"></i> 📄 הורד דוח תשלומים אישי (קובץ טקסט)</button>
+            </div>
+            <div id="personalReportContentDashboard" class="sub" style="color:#4a5568;">לחץ להורדת דוח מלא על כל התשלומים והניכויים שלך.</div>
+        </div>
+
+        <!-- תשלום חודשי קבוע - עורך רק למנהל -->
+        <div class="card">
+            <div class="card-title"><i class="fas fa-calendar-alt"></i> תשלום חודשי קבוע</div>
+            <div class="monthly-fee-editor">
+                <label>סכום חודשי קבוע (₪):</label>
+                <input type="number" id="monthlyFeeTarget" step="10" value="500">
+                <button id="saveMonthlyFeeBtn" style="background: #38a169;">💾 שמור</button>
+                <span id="monthlyFeeStatus" style="font-size:0.8rem;"></span>
+            </div>
+            <div class="sub" style="margin-top:5px;">הסכום משמש לחישוב החוב השנתי של כל דייר (רק תשלומים רגילים)</div>
+        </div>
+
+        <!-- כפתורי פעולה מהירה - מוצגים רק למנהל -->
+        <div class="card" id="quickActionsCard" style="display: none;">
+            <div class="card-title"><i class="fas fa-bolt"></i> פעולות מהירות</div>
+            <div class="form-group"><button id="quickAddIncomeBtn"><i class="fas fa-plus-circle"></i> הוסף הכנסה</button><button id="quickAddExpenseBtn"><i class="fas fa-receipt"></i> הוסף הוצאה</button></div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+            <div class="card"><div class="card-title"><i class="fas fa-comments"></i> פורום דיירים</div><div id="forumAccessWarning" style="display:none;background:#fed7d7;padding:12px;border-radius:12px;margin-bottom:15px;color:#742a2a;"><i class="fas fa-lock"></i> הפורום זמין רק לדיירים מורשים. <a href="#" id="loginLinkFromForum" style="color:#667eea;">התחבר</a> כדי להשתתף.</div><div class="form-group" id="forumPostArea" style="flex-direction: column; display: none;"><textarea id="forumMsgDashboard" rows="2" placeholder="ההודעה שלך..." style="width: 100%;"></textarea><div style="display: flex; gap: 10px;"><button id="postMsgDashboard"><i class="fas fa-paper-plane"></i> שלח</button><button id="clearForumBtn" class="clear-forum-btn" style="background:#e53e3e; display: none;"><i class="fas fa-trash-alt"></i> 🗑️ נקה פורום</button></div></div><div id="forumContainer" style="max-height: 300px; overflow-y: auto;"></div></div>
+            <div class="card"><div class="card-title"><i class="fas fa-lightbulb"></i> הצעות והצבעות</div><div id="recommendationAccessWarning" style="display:none;background:#fed7d7;padding:12px;border-radius:12px;margin-bottom:15px;color:#742a2a;"><i class="fas fa-lock"></i> ההצעות זמינות רק לדיירים מורשים.</div><div id="recommendationsPostArea" style="display: none;"><div class="form-group" style="flex-direction: column;"><textarea id="newRecommendationText" rows="2" placeholder="הצע רעיון לשיפור הבית..." style="width: 100%;"></textarea><div style="display: flex; gap: 10px;"><button id="submitRecommendationBtn"><i class="fas fa-plus-circle"></i> הצע רעיון</button><button id="clearVotesBtn" class="clear-votes-btn" style="background:#e53e3e; display: none;"><i class="fas fa-eraser"></i> 🗳️ נקה הצבעות</button></div></div></div><div id="recommendations"></div></div>
+        </div>
+    </div>
+    
+    <!-- עמוד הכנסות - גלוי רק למנהל -->
+    <div id="incomePage" class="page">
+        <div class="card"><div class="card-title"><i class="fas fa-hand-holding-usd"></i> תקבולים</div>
+            <div class="filter-bar">
+                <select id="incomeYearFilter"><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option></select>
+                <select id="incomeMonthFilter"><option value="all">כל החודשים</option><option value="01">ינואר</option><option value="02">פברואר</option><option value="03">מרץ</option><option value="04">אפריל</option><option value="05">מאי</option><option value="06">יוני</option><option value="07">יולי</option><option value="08">אוגוסט</option><option value="09">ספטמבר</option><option value="10">אוקטובר</option><option value="11">נובמבר</option><option value="12">דצמבר</option></select>
+                <button id="downloadPersonalReportBtn" style="background:#38a169;"><i class="fas fa-download"></i> הורד דוח אישי</button>
+            </div>
+            <div style="overflow-x:auto;"><table id="incomeTable"><thead><tr><th>תאריך</th><th>משלם</th><th>סוג</th><th>סכום</th><th>הערה</th><th></th></tr></thead><tbody id="incomeTableBody"></tbody></table></div>
+        </div>
+
+        <!-- סיכום תשלומים לפי דייר - גלוי רק למנהל -->
+        <div class="card" id="residentsSummaryCard">
+            <div class="card-title"><i class="fas fa-users"></i> סיכום תשלומים לפי דייר</div>
+            <div style="overflow-x:auto;">
+                <table id="residentsSummaryTable">
+                    <thead><tr><th>דייר</th><th>סה"כ תשלומים רגילים (₪)</th><th>סה"כ תשלומים מיוחדים (₪)</th><th>יתרת קרן מיוחדת (חיסכון) (₪)</th><th>יתרה/חוב עד סוף שנה (₪)</th></tr></thead>
+                    <tbody id="residentsSummaryBody"></tbody>
+                </table>
+            </div>
+            <div class="sub" style="margin-top:10px;">* קרן מיוחדת = סך תשלומים מיוחדים - ניכויי חירום. חוב שנתי מחושב מהתשלומים הרגילים בלבד.</div>
+        </div>
+
+        <div class="card" id="addIncomeForm" style="display: none;"><div class="card-title"><i class="fas fa-plus-circle"></i> הוסף תקבול (מנהל)</div>
+            <div class="form-group">
+                <select id="incomeResidentSelect"><option value="">בחר דייר</option></select>
+                <select id="incomeTypeSelect">
+                    <option value="regular">📋 תשלום חודשי (לקופה ראשית)</option>
+                    <option value="special">💰 תשלום מיוחד (קופת חיסכון)</option>
+                </select>
+                <input type="number" id="incomeAmountAdd" placeholder="סכום ₪">
+                <input type="month" id="incomeMonthAdd" value="2026-01">
+            </div>
+            <div class="form-group"><textarea id="incomeCommentAdd" placeholder="הערה (אופציונלי)" rows="2" style="flex:2;"></textarea><button id="addIncomeBtn"><i class="fas fa-plus"></i> הוסף תקבול</button><button id="sendWhatsAppReceiptBtn" style="background:#25D366;"><i class="fab fa-whatsapp"></i> שלח קבלה בוואטסאפ</button></div>
+        </div>
+        <div class="card" id="personalReportCard" style="display: none;"><div class="card-title"><i class="fas fa-user-chart"></i> התרומה האישית שלי</div><div id="personalReportContent"></div></div>
+    </div>
+    
+    <!-- עמוד הוצאות - גלוי רק למנהל -->
+    <div id="expensesPage" class="page"><div class="card"><div class="card-title"><i class="fas fa-receipt"></i> כל ההוצאות</div><div class="filter-bar"><select id="expenseYearFilter"><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option></select><select id="expenseMonthFilter"><option value="all">כל החודשים</option><option value="01">ינואר</option><option value="02">פברואר</option><option value="03">מרץ</option><option value="04">אפריל</option><option value="05">מאי</option><option value="06">יוני</option><option value="07">יולי</option><option value="08">אוגוסט</option><option value="09">ספטמבר</option><option value="10">אוקטובר</option><option value="11">נובמבר</option><option value="12">דצמבר</option></select></div><div style="overflow-x:auto;"><table id="expensesTable"><thead><tr><th>תאריך</th><th>תיאור</th><th>סכום</th><th>סוג</th><th>הערה</th><th>קבלה</th><th></th></tr></thead><tbody id="expensesTableBody"></tbody></table></div></div><div class="card" id="addExpenseForm" style="display: none;"><div class="card-title"><i class="fas fa-plus-circle"></i> הוסף הוצאה (מנהל)</div><div class="form-group"><input type="text" id="expenseDesc" placeholder="תיאור" style="flex:2;"><select id="expenseTypeSelect"><option value="normal">📋 הוצאה רגילה (מהקופה הראשית)</option><option value="emergency">🚨 הוצאת חירום (נגבית מהקרן המיוחדת של הדיירים)</option></select><input type="number" id="expenseAmount" placeholder="סכום ₪"><input type="month" id="expenseMonthAdd" value="2026-01"></div><div class="form-group"><textarea id="expenseComment" placeholder="הערה" rows="3" style="width:100%;"></textarea></div><div class="form-group"><label style="background:#e2e8f0;padding:10px 18px;border-radius:30px;cursor:pointer;"><i class="fas fa-cloud-upload-alt"></i> העלאת קבלה<input type="file" id="expenseFileAdd" accept="image/*,application/pdf" style="display:none;"></label><span id="fileNameDisplayAdd">לא נבחר קובץ</span><button id="addExpenseBtn"><i class="fas fa-plus"></i> הוסף הוצאה</button></div><div id="uploadStatusMsg" style="font-size:0.75rem;color:#667eea;"></div></div></div>
+    
+    <div id="residentsPage" class="page"><div class="card"><div class="card-title"><i class="fas fa-users"></i> ניהול דיירים</div><div class="form-group"><input type="text" id="newResidentName" placeholder="שם מלא" style="flex:2;"><input type="text" id="newResidentApartment" placeholder="מספר דירה" style="flex:1;"><input type="tel" id="newResidentPhone" placeholder="טלפון" style="flex:2;"><button id="addResidentBtn" style="background:#38a169;"><i class="fas fa-plus"></i> הוסף</button></div><div id="residentsListContainer"></div></div></div>
+    
+    <div id="announcementsPage" class="page">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-bullhorn"></i> ניהול הודעות פופאפ (מנהל בלבד)</div>
+            <div id="announcementAdminArea" style="display: none;">
+                <div class="form-group"><input type="text" id="announceTitle" placeholder="כותרת ההודעה" style="flex:2;"><textarea id="announceMessage" rows="3" placeholder="תוכן ההודעה..." style="width:100%; margin-bottom:10px;"></textarea></div>
+                <div class="form-group"><select id="announceTargetSelect"><option value="all">📢 לכל הדיירים</option></select><button id="createAnnouncementBtn"><i class="fas fa-plus-circle"></i> צור הודעה ושלוח בוואטסאפ</button></div>
+                <div id="announceWhatsappStatus" style="margin-top:10px;font-size:0.8rem;"></div>
+            </div>
+            <div id="announcementNonAdminMsg" style="display:none; text-align:center; padding:20px;"><i class="fas fa-lock"></i> עמוד זה זמין למנהל בלבד.</div>
+            <hr style="margin:20px 0;">
+            <div class="card-title"><i class="fas fa-history"></i> הודעות קודמות</div>
+            <div id="announcementsList"></div>
+        </div>
+    </div>
+</div>
+
+<button class="admin-badge" id="adminBtn">👑 כניסת מנהל</button>
+<div class="sync-status" id="syncStatus">☁️ מתחבר...</div>
+
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyCbMAYlOnkl1E4hJ-dVsbCuFaSfMNjjV68", authDomain: "goldberg-lea.firebaseapp.com", databaseURL: "https://goldberg-lea-default-rtdb.firebaseio.com", projectId: "goldberg-lea", storageBucket: "goldberg-lea.firebasestorage.app", messagingSenderId: "1016103969258", appId: "1:1016103969258:web:b8e2dc740a13f2fa4a9293" };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    
+    let payments = [], expenses = [], forum = [], residents = [], recommendations = [], announcements = [];
+    let emergencyDeductions = [];
+    let isAdmin = false, currentUser = null, selectedFile = null;
+    let monthlyFeeTarget = 500;
+    const IMGBB_API_KEY = "f9bb791d0681c7cf81b6a7cd1456e4aa";
+    let currentDashboardMonth = new Date().toISOString().slice(0, 7);
+    
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+    function updateSyncStatus(text) { let el = document.getElementById('syncStatus'); if(el) el.innerHTML = text; setTimeout(() => { if(el && el.innerHTML === text) el.innerHTML = '✅ מסונכרן'; }, 2000); }
+    
+    async function loadAllData() {
+        updateSyncStatus('☁️ טוען...');
+        try {
+            let data = (await database.ref('/').once('value')).val();
+            if(data) {
+                payments = (data.payments || []).filter(p => p.month >= '2026-01');
+                expenses = (data.expenses || []).filter(e => e.month >= '2026-01');
+                forum = data.forum || [];
+                residents = data.residents || [];
+                recommendations = data.recommendations || [];
+                announcements = data.announcements || [];
+                emergencyDeductions = data.emergencyDeductions || [];
+                if(data.monthlyFeeTarget) monthlyFeeTarget = data.monthlyFeeTarget;
+            }
+            if(residents.length === 0) residents = [{ id: 'r1', name: 'אנה פטרובה', phone: '972501234567', apartment: '4' },{ id: 'r2', name: 'דמיטרי איוונוב', phone: '972502345678', apartment: '9' },{ id: 'r3', name: 'ילנה סמירנובה', phone: '972503456789', apartment: '12' }];
+            if(forum.length === 0) forum = [{ id: 'f1', author: 'מערכת', text: 'ברוכים הבאים לצ\'אט אינדקס אחד! 🎉', timestamp: new Date().toISOString() }];
+            await saveToFirebase('/residents', residents);
+            updateSyncStatus('✅ מסונכרן');
+            document.getElementById('monthlyFeeTarget').value = monthlyFeeTarget;
+            updateMonthlyFeeInput();
+        } catch(e) { console.error(e); updateSyncStatus('❌ שגיאה'); }
+        renderAll();
+        if(currentUser) showPendingAnnouncements();
+    }
+    async function saveToFirebase(path, data) { try { await database.ref(path).set(data); } catch(e) { console.error(e); } }
+    function saveAllData() { 
+        saveToFirebase('/payments', payments); saveToFirebase('/expenses', expenses); saveToFirebase('/forum', forum);
+        saveToFirebase('/residents', residents); saveToFirebase('/recommendations', recommendations);
+        saveToFirebase('/announcements', announcements);
+        saveToFirebase('/monthlyFeeTarget', monthlyFeeTarget);
+        saveToFirebase('/emergencyDeductions', emergencyDeductions);
+    }
+    
+    function updateMonthlyFeeInput() {
+        let input = document.getElementById('monthlyFeeTarget');
+        if(isAdmin) input.disabled = false;
+        else input.disabled = true;
+    }
+    
+    function getSpecialBalance(residentName) {
+        const totalSpecial = payments.filter(p => p.payer === residentName && p.type === 'special').reduce((s,p) => s + p.amount, 0);
+        const totalDeductions = emergencyDeductions.filter(d => d.residentName === residentName).reduce((s,d) => s + d.amount, 0);
+        return totalSpecial - totalDeductions;
+    }
+    
+    function getTotalSpecialFund() {
+        let total = 0;
+        residents.forEach(r => { total += getSpecialBalance(r.name); });
+        return total;
+    }
+    
+    function renderResidentsSummary() {
+        const tbody = document.getElementById('residentsSummaryBody');
+        if(!tbody) return;
+        const currentYear = new Date().getFullYear().toString();
+        let html = '';
+        residents.forEach(res => {
+            const paymentsThisYear = payments.filter(p => p.payer === res.name && p.month.startsWith(currentYear));
+            const totalRegular = paymentsThisYear.filter(p => p.type === 'regular').reduce((s,p) => s + p.amount, 0);
+            const totalSpecial = paymentsThisYear.filter(p => p.type === 'special').reduce((s,p) => s + p.amount, 0);
+            const specialBalance = getSpecialBalance(res.name);
+            const expectedYearly = monthlyFeeTarget * 12;
+            let diff = expectedYearly - totalRegular;
+            let diffText, diffClass;
+            if(diff > 0) { diffText = `חוב: ${diff.toFixed(2)} ₪`; diffClass = 'amount-negative'; }
+            else if(diff < 0) { diffText = `יתרה לזכות: ${(-diff).toFixed(2)} ₪`; diffClass = 'amount-positive'; }
+            else { diffText = `0 ₪`; diffClass = ''; }
+            html += `<tr>
+                        <td>${escapeHtml(res.name)} (דירה ${escapeHtml(res.apartment)})</td>
+                        <td class="amount-positive">${totalRegular.toFixed(2)} ₪</td>
+                        <td class="amount-positive">${totalSpecial.toFixed(2)} ₪</td>
+                        <td class="${specialBalance >= 0 ? 'amount-positive' : 'amount-negative'}">${specialBalance.toFixed(2)} ₪</td>
+                        <td class="${diffClass}">${diffText}</td>
+                      </tr>`;
+        });
+        tbody.innerHTML = html;
+        document.getElementById('totalSpecialFund').innerHTML = getTotalSpecialFund().toFixed(2) + ' ₪';
+    }
+    
+    function getTotalIncome() { return payments.reduce((s,p) => s + p.amount, 0); }
+    function getTotalExpenses() { return expenses.reduce((s,e) => s + e.amount, 0); }
+    function getCurrentMonthPayments() { return payments.filter(p => p.month === currentDashboardMonth && p.type === 'regular').reduce((s, p) => s + p.amount, 0); }
+    function getCurrentMonthExpenses() { return expenses.filter(e => e.month === currentDashboardMonth && e.expenseType !== 'emergency' && e.amount <= 500).reduce((s, e) => s + e.amount, 0); }
+    function getEmergencyExpensesTotal() { return expenses.filter(e => e.expenseType === 'emergency').reduce((s, e) => s + e.amount, 0); }
+    function getMainCashBalance() { 
+        return payments.filter(p => p.type === 'regular').reduce((s,p) => s + p.amount,0) - expenses.filter(e => e.expenseType !== 'emergency' && e.amount <= 500).reduce((s,e) => s + e.amount,0);
+    }
+    function renderDashboard() {
+        document.getElementById('totalMonthlyFees').innerHTML = getCurrentMonthPayments().toFixed(2) + ' ₪';
+        document.getElementById('totalMonthlyExpenses').innerHTML = getCurrentMonthExpenses().toFixed(2) + ' ₪';
+        document.getElementById('totalEmergencyExpenses').innerHTML = getEmergencyExpensesTotal().toFixed(2) + ' ₪';
+        document.getElementById('mainCashBalance').innerHTML = getMainCashBalance().toFixed(2) + ' ₪';
+        document.getElementById('totalIncome').innerHTML = getTotalIncome().toFixed(2) + ' ₪';
+        document.getElementById('totalExpensesAll').innerHTML = getTotalExpenses().toFixed(2) + ' ₪';
+        document.getElementById('totalBalanceAll').innerHTML = (getTotalIncome() - getTotalExpenses()).toFixed(2) + ' ₪';
+        document.getElementById('totalSpecialFund').innerHTML = getTotalSpecialFund().toFixed(2) + ' ₪';
+    }
+    
+    function renderIncome() { 
+        if(!isAdmin) return;
+        let year = document.getElementById('incomeYearFilter').value, month = document.getElementById('incomeMonthFilter').value;
+        let filtered = payments.filter(p => p.month.startsWith(year));
+        if(month !== 'all') filtered = filtered.filter(p => p.month.endsWith(`-${month}`));
+        let tbody = document.getElementById('incomeTableBody');
+        tbody.innerHTML = filtered.map(p => `
+            <tr>
+                <td>${p.month}</td>
+                <td>${escapeHtml(p.payer)}</td>
+                <td>${p.type === 'regular' ? 'רגיל' : 'מיוחד'}</td>
+                <td class="amount-positive">${p.amount.toFixed(2)} ₪</td>
+                <td>${escapeHtml(p.comment || '')}</td>
+                <td>${isAdmin ? `<button class="delete-btn" onclick="deletePayment('${p.id}')"><i class="fas fa-trash"></i></button>` : ''}</td>
+            </tr>`).join('');
+        renderResidentsSummary();
+    }
+    
+    function renderExpenses() { 
+        if(!isAdmin) return;
+        let year = document.getElementById('expenseYearFilter').value, month = document.getElementById('expenseMonthFilter').value;
+        let filtered = expenses.filter(e => e.month.startsWith(year));
+        if(month !== 'all') filtered = filtered.filter(e => e.month.endsWith(`-${month}`));
+        let tbody = document.getElementById('expensesTableBody');
+        tbody.innerHTML = filtered.map(e => `
+            <tr>
+                <td>${e.month}</td>
+                <td>${escapeHtml(e.desc)}</td>
+                <td class="amount-negative">${e.amount.toFixed(2)} ₪</td>
+                <td>${e.expenseType === 'emergency' ? 'חירום (התחלק בין הדיירים)' : 'רגיל'}</td>
+                <td>${escapeHtml(e.comment || '')}</td>
+                <td>${e.cloudUrl ? `<a href="${e.cloudUrl}" target="_blank"><i class="fas fa-receipt"></i> קבלה</a>` : 'אין'}</td>
+                <td>${isAdmin ? `<button class="delete-btn" onclick="deleteExpenseItem('${e.id}')"><i class="fas fa-trash"></i></button>` : ''}</td>
+            </tr>`).join('');
+    }
+    
+    function renderForum() { 
+        let container = document.getElementById('forumContainer'), warning = document.getElementById('forumAccessWarning'), postArea = document.getElementById('forumPostArea'); 
+        if(!currentUser) { if(warning) warning.style.display = 'block'; if(postArea) postArea.style.display = 'none'; if(container) container.innerHTML = '<div style="text-align:center;padding:20px;"><i class="fas fa-lock"></i> התחבר כדי לראות הודעות</div>'; return; } 
+        if(warning) warning.style.display = 'none'; if(postArea) postArea.style.display = 'flex'; 
+        if(container) container.innerHTML = forum.slice().reverse().map(f => `<div class="forum-message"><strong>${escapeHtml(f.author)}</strong><small style="color:#718096;"> ${new Date(f.timestamp).toLocaleString('he-IL')}</small><div style="margin-top:8px;">${escapeHtml(f.text)}</div></div>`).join(''); 
+    }
+    function addForumMessage() { if(!currentUser) { alert("רק דיירים מורשים יכולים לכתוב בפורום"); return; } let text = document.getElementById('forumMsgDashboard').value.trim(); if(!text) return; forum.push({ id: 'f' + Date.now(), author: currentUser.name, text: text, timestamp: new Date().toISOString() }); saveAllData(); document.getElementById('forumMsgDashboard').value = ''; renderForum(); }
+    
+    function clearForum() {
+        if(!isAdmin) return;
+        if(confirm("⚠️ האם אתה בטוח שברצונך למחוק את כל ההודעות בפורום? פעולה זו בלתי הפיכה.")) {
+            forum = [];
+            saveAllData();
+            renderForum();
+            alert("✅ הפורום נוקה בהצלחה.");
+        }
+    }
+    
+    function clearAllVotes() {
+        if(!isAdmin) return;
+        if(confirm("⚠️ האם אתה בטוח שברצונך לאפס את כל ההצבעות לכל ההצעות? פעולה זו תמחק את שמות המצביעים ולא ניתנת לביטול.")) {
+            recommendations.forEach(rec => { rec.votesFor = []; rec.status = 'pending'; });
+            saveAllData();
+            renderRecommendations();
+            alert("✅ כל ההצבעות נמחקו.");
+        }
+    }
+    
+    function renderRecommendations() { 
+        let container = document.getElementById('recommendations'), warning = document.getElementById('recommendationAccessWarning'), postArea = document.getElementById('recommendationsPostArea'); 
+        if(!currentUser) { if(warning) warning.style.display = 'block'; if(postArea) postArea.style.display = 'none'; if(container) container.innerHTML = '<div style="text-align:center;padding:20px;"><i class="fas fa-lock"></i> התחבר כדי לראות הצעות</div>'; return; } 
+        if(warning) warning.style.display = 'none'; if(postArea) postArea.style.display = 'block'; 
+        let totalResidents = residents.length; let html = ''; 
+        recommendations.forEach(rec => { let forVotes = rec.votesFor?.length || 0; let voted = rec.votesFor?.includes(currentUser.name) || false; let progressPercent = totalResidents > 0 ? (forVotes / totalResidents) * 100 : 0; let statusHtml = rec.status === 'accepted' ? '<span class="badge badge-success"><i class="fas fa-check-circle"></i> התקבל!</span>' : `<span class="badge">${Math.round(progressPercent)}% (צריך 75%)</span>`; if(progressPercent >= 75 && rec.status !== 'accepted') { rec.status = 'accepted'; saveAllData(); } html += `<div class="recommendation-card ${rec.status === 'accepted' ? 'accepted' : ''}"><div><strong>${escapeHtml(rec.title)}</strong><br><small>מאת: ${escapeHtml(rec.author)} | ${new Date(rec.createdAt).toLocaleString('he-IL')}</small></div><div style="margin:10px 0;">${escapeHtml(rec.description)}</div><div class="progress-bar"><div class="progress-fill" style="width: ${progressPercent}%;"></div></div><div>✅ בעד: ${forVotes} / ${totalResidents} ${!voted && rec.author !== currentUser.name && rec.status !== 'accepted' ? `<button class="vote-btn" onclick="voteForRecommendation('${rec.id}')"><i class="fas fa-thumbs-up"></i> הצבע</button>` : (voted ? '<span>הצבעת!</span>' : '')}</div></div>`; }); 
+        if(recommendations.length === 0) html = '<div style="text-align:center;padding:20px;">אין הצעות. היה הראשון!</div>'; container.innerHTML = html; 
+    }
+    function submitRecommendation() { if(!currentUser) { alert("רק דיירים מורשים יכולים להציע רעיונות"); return; } let text = document.getElementById('newRecommendationText').value.trim(); if(!text) return; let title = text.split('\n')[0].substring(0, 60); recommendations.push({ id: 'rec_' + Date.now(), title: title, description: text, author: currentUser.name, createdAt: new Date().toISOString(), votesFor: [], status: 'pending' }); saveAllData(); document.getElementById('newRecommendationText').value = ''; renderRecommendations(); }
+    window.voteForRecommendation = function(recId) { if(!currentUser) return; let rec = recommendations.find(r => r.id === recId); if(!rec || rec.status !== 'pending' || rec.author === currentUser.name || rec.votesFor.includes(currentUser.name)) return; rec.votesFor.push(currentUser.name); saveAllData(); renderRecommendations(); };
+    
+    // Popup announcements
+    let announcementQueue = [];
+    function showNextAnnouncement() {
+        if(announcementQueue.length === 0) return;
+        const ann = announcementQueue[0];
+        let existing = document.querySelector('.popup-announcement');
+        if(existing) existing.remove();
+        let popup = document.createElement('div');
+        popup.className = 'popup-announcement';
+        popup.innerHTML = `<div class="popup-announcement-header"><i class="fas fa-bullhorn"></i> ${escapeHtml(ann.title)}</div><div class="popup-announcement-body">${escapeHtml(ann.message).replace(/\n/g,'<br>')}</div><div class="popup-announcement-footer"><button class="close-popup-btn" id="closePopupBtn"><i class="fas fa-times"></i> סגור</button></div>`;
+        document.body.appendChild(popup);
+        const closeBtn = document.getElementById('closePopupBtn');
+        closeBtn.onclick = () => {
+            popup.remove();
+            let closed = JSON.parse(localStorage.getItem(`closedAnnouncements_${currentUser?.name}`) || '[]');
+            if(!closed.includes(ann.id)) closed.push(ann.id);
+            localStorage.setItem(`closedAnnouncements_${currentUser?.name}`, JSON.stringify(closed));
+            announcementQueue.shift();
+            showNextAnnouncement();
+        };
+    }
+    function showPendingAnnouncements() {
+        if(!currentUser) return;
+        const closed = JSON.parse(localStorage.getItem(`closedAnnouncements_${currentUser.name}`) || '[]');
+        const pending = announcements.filter(a => !closed.includes(a.id));
+        announcementQueue = [...pending];
+        showNextAnnouncement();
+    }
+    async function sendWhatsAppToSelectedResidents(phoneNumbers, title, message) { 
+        let fullMessage = `*${title}*\n${message}\n\n📢 אינדקס אחד - ניהול הבית`; 
+        for(let phone of phoneNumbers) { 
+            let cleanPhone = phone.replace(/\D/g, ''); 
+            if(!cleanPhone.startsWith('972')) cleanPhone = '972' + cleanPhone; 
+            window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(fullMessage)}`, '_blank'); 
+            await new Promise(r => setTimeout(r, 800)); 
+        } 
+    }
+    async function createAndSendAnnouncement() { 
+        if(!isAdmin) return; 
+        let title = document.getElementById('announceTitle').value.trim(); 
+        let message = document.getElementById('announceMessage').value.trim(); 
+        if(!title || !message) { alert("יש למלא כותרת ותוכן"); return; } 
+        let target = document.getElementById('announceTargetSelect').value; 
+        let selectedResidents = target === 'all' ? residents : residents.filter(r => r.id === target); 
+        if(selectedResidents.length === 0) { alert("לא נבחרו דיירים"); return; } 
+        let phoneNumbers = selectedResidents.map(r => r.phone).filter(p => p); 
+        let newAnnouncement = { id: Date.now().toString(), title, message, createdAt: new Date().toISOString(), sentTo: selectedResidents.map(r => r.name) }; 
+        announcements.unshift(newAnnouncement); 
+        saveAllData(); 
+        renderAnnouncementsList(); 
+        if(currentUser && selectedResidents.some(r=>r.name===currentUser.name)) showPendingAnnouncements();
+        await sendWhatsAppToSelectedResidents(phoneNumbers, title, message); 
+        document.getElementById('announceWhatsappStatus').innerHTML = `<i class="fab fa-whatsapp"></i> נשלח בהצלחה ל-${selectedResidents.length} דיירים!`; 
+        setTimeout(() => document.getElementById('announceWhatsappStatus').innerHTML = '', 3000); 
+    }
+    function deleteAnnouncement(announceId) { if(!isAdmin) return; if(confirm("האם למחוק את ההודעה?")) { announcements = announcements.filter(a => a.id !== announceId); saveAllData(); renderAnnouncementsList(); } }
+    function renderAnnouncementsList() { 
+        let container = document.getElementById('announcementsList'); 
+        if(!container) return; 
+        if(announcements.length === 0) container.innerHTML = '<div style="text-align:center;padding:20px;">אין הודעות קודמות</div>'; 
+        else container.innerHTML = announcements.map(a => `<div class="announcement-card"><div style="display:flex; justify-content:space-between; align-items:start;"><div><strong><i class="fas fa-bullhorn"></i> ${escapeHtml(a.title)}</strong><br><small>${new Date(a.createdAt).toLocaleString('he-IL')}</small></div>${isAdmin ? `<button class="delete-announcement-btn" onclick="deleteAnnouncement('${a.id}')"><i class="fas fa-trash"></i> מחק</button>` : ''}</div><div style="margin-top:8px;">${escapeHtml(a.message)}</div><div class="badge">נשלח ל: ${a.sentTo.join(', ')}</div></div>`).join(''); 
+    }
+    
+    function addIncome() { if(!isAdmin) return; let residentName = document.getElementById('incomeResidentSelect').value, type = document.getElementById('incomeTypeSelect').value, amount = parseFloat(document.getElementById('incomeAmountAdd').value), month = document.getElementById('incomeMonthAdd').value, comment = document.getElementById('incomeCommentAdd').value.trim(); if(!residentName || isNaN(amount) || amount<=0){alert("בחר דייר וסכום תקין");return;} payments.push({id:'p'+Date.now(),payer:residentName,month:month,amount:amount,type:type,comment:comment}); saveAllData(); document.getElementById('incomeAmountAdd').value = ''; renderAll(); alert(`✅ נוסף תקבול ${amount}₪`); }
+    
+    async function addExpense() { 
+        if(!isAdmin) return; 
+        let desc = document.getElementById('expenseDesc').value.trim(); 
+        let expenseType = document.getElementById('expenseTypeSelect').value; 
+        let amount = parseFloat(document.getElementById('expenseAmount').value); 
+        let month = document.getElementById('expenseMonthAdd').value; 
+        let comment = document.getElementById('expenseComment').value.trim(); 
+        if(!desc || isNaN(amount) || amount<=0){alert("מלא תיאור וסכום");return;} 
+        let btn = document.getElementById('addExpenseBtn'); 
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> מעלה...'; 
+        btn.disabled=true; 
+        try { 
+            let cloudUrl=''; 
+            if(selectedFile){ 
+                let base64=await new Promise(r=>{let fr=new FileReader(); fr.onload=()=>r(fr.result.split(',')[1]); fr.readAsDataURL(selectedFile);}); 
+                let fd=new FormData(); fd.append('key',IMGBB_API_KEY); fd.append('image',base64); 
+                let res=await fetch('https://api.imgbb.com/1/upload',{method:'POST',body:fd}); 
+                let data=await res.json(); 
+                if(data.success) cloudUrl=data.data.url;
+            } 
+            if(expenseType === 'emergency') {
+                let expenseId = 'e'+Date.now();
+                const residentCount = residents.length;
+                if(residentCount === 0) throw new Error("אין דיירים");
+                const share = amount / residentCount;
+                for(let res of residents) {
+                    emergencyDeductions.push({
+                        id: Date.now() + '-' + res.id,
+                        residentName: res.name,
+                        amount: share,
+                        expenseId: expenseId,
+                        month: month,
+                        description: desc,
+                        date: new Date().toISOString()
+                    });
+                }
+                expenses.push({
+                    id: expenseId,
+                    desc: desc,
+                    amount: amount,
+                    month: month,
+                    expenseType: 'emergency',
+                    comment: comment,
+                    cloudUrl: cloudUrl,
+                    distributed: true
+                });
+            } else {
+                expenses.push({id:'e'+Date.now(),desc:desc,amount:amount,month:month,expenseType:expenseType,comment:comment,cloudUrl:cloudUrl});
+            }
+            saveAllData(); 
+            selectedFile=null; 
+            document.getElementById('fileNameDisplayAdd').innerText='לא נבחר קובץ'; 
+            alert(`✅ הוצאה ${amount}₪ נוספה${expenseType === 'emergency' ? ' והתחלקה שווה בשווה בין הדיירים' : ''}`); 
+        } catch(e){ console.error(e); alert("שגיאה בהוספת ההוצאה"); } 
+        finally{ btn.innerHTML='<i class="fas fa-plus"></i> הוסף הוצאה'; btn.disabled=false; } 
+        renderAll(); 
+    }
+    
+    function addResident() { if(!isAdmin) return; let name = document.getElementById('newResidentName').value.trim(), apartment = document.getElementById('newResidentApartment').value.trim(), phone = document.getElementById('newResidentPhone').value.trim(); if(!name||!apartment||!phone){alert("מלא את כל השדות");return;} let cleanPhone = phone.replace(/\D/g,''); if(!cleanPhone.startsWith('972')) cleanPhone='972'+cleanPhone; residents.push({id:'r'+Date.now(),name:name,apartment:apartment,phone:cleanPhone}); saveAllData(); updateResidentsSelect(); renderResidentsList(); renderAnnouncementsTargetSelect(); renderResidentsSummary(); }
+    function editResident(id) { if(!isAdmin) return; let resident = residents.find(r=>r.id===id); if(!resident) return; let newName=prompt("שם חדש:",resident.name); if(newName) resident.name=newName; let newApartment=prompt("מספר דירה:",resident.apartment); if(newApartment) resident.apartment=newApartment; let newPhone=prompt("טלפון:",resident.phone); if(newPhone){let cleanPhone=newPhone.replace(/\D/g,''); if(!cleanPhone.startsWith('972')) cleanPhone='972'+cleanPhone; resident.phone=cleanPhone;} saveAllData(); updateResidentsSelect(); renderResidentsList(); renderAnnouncementsTargetSelect(); renderResidentsSummary(); }
+    function deleteResident(id) { if(!isAdmin) return; if(confirm("למחוק דייר? כל התשלומים והניכויים שלו יימחקו")) { let resident = residents.find(r=>r.id===id); if(resident){ payments=payments.filter(p=>p.payer!==resident.name); emergencyDeductions = emergencyDeductions.filter(d=>d.residentName!==resident.name); residents=residents.filter(r=>r.id!==id); saveAllData(); updateResidentsSelect(); renderResidentsList(); renderAnnouncementsTargetSelect(); renderAll(); } } }
+    function deletePayment(id) { if(!isAdmin) return; if(confirm("למחוק תשלום?")){ payments=payments.filter(p=>p.id!==id); saveAllData(); renderAll(); } }
+    function deleteExpenseItem(id) { if(!isAdmin) return; if(confirm("למחוק הוצאה? אם זו הוצאת חירום, יימחקו גם הניכויים מהדיירים")){ let expense = expenses.find(e=>e.id===id); if(expense && expense.expenseType === 'emergency') { emergencyDeductions = emergencyDeductions.filter(d=>d.expenseId !== id); } expenses=expenses.filter(e=>e.id!==id); saveAllData(); renderAll(); } }
+    function renderResidentsList() { let container = document.getElementById('residentsListContainer'); if(!container||!isAdmin) return; container.innerHTML = residents.map(r=>`<div class="resident-item"><div><strong>${escapeHtml(r.name)}</strong><br><small>דירה ${escapeHtml(r.apartment)} | 📱 ${r.phone} | קרן מיוחדת: ${getSpecialBalance(r.name).toFixed(2)} ₪</small></div><div><button class="edit-btn" onclick="editResident('${r.id}')"><i class="fas fa-edit"></i></button><button class="delete-btn" onclick="deleteResident('${r.id}')"><i class="fas fa-trash"></i></button></div></div>`).join(''); }
+    function updateResidentsSelect() { let sel = document.getElementById('incomeResidentSelect'); if(sel) sel.innerHTML = '<option value="">בחר דייר</option>' + residents.map(r => `<option value="${escapeHtml(r.name)}">${escapeHtml(r.name)} (דירה ${r.apartment})</option>`).join(''); }
+    function renderAnnouncementsTargetSelect() { let sel = document.getElementById('announceTargetSelect'); if(sel && isAdmin) sel.innerHTML = '<option value="all">📢 לכל הדיירים</option>' + residents.map(r => `<option value="${r.id}">👤 ${escapeHtml(r.name)} (דירה ${r.apartment})</option>`).join(''); }
+    
+    // פונקציה להורדת דוח אישי (טקסט) - משותפת
+    function downloadPersonalReport() { 
+        if(!currentUser){
+            alert("רק דיירים מורשים יכולים להוריד דוח");
+            return;
+        }
+        let userRegular = payments.filter(p => p.payer === currentUser.name && p.type === 'regular');
+        let userSpecial = payments.filter(p => p.payer === currentUser.name && p.type === 'special');
+        let totalRegular = userRegular.reduce((s,p)=>s+p.amount,0);
+        let totalSpecial = userSpecial.reduce((s,p)=>s+p.amount,0);
+        let userDeductions = emergencyDeductions.filter(d=>d.residentName === currentUser.name);
+        let totalDeductions = userDeductions.reduce((s,d)=>s+d.amount,0);
+        let specialBalance = totalSpecial - totalDeductions;
+        
+        let reportLines = [];
+        reportLines.push(`דוח תשלומים אישי - ${currentUser.name}`);
+        reportLines.push(`תאריך הפקת הדוח: ${new Date().toLocaleString('he-IL')}`);
+        reportLines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+        reportLines.push(`📋 תשלומים רגילים (לקופה ראשית):`);
+        if(userRegular.length === 0) reportLines.push(`   * אין תשלומים רגילים`);
+        else userRegular.forEach(p => reportLines.push(`   • ${p.month} : ${p.amount.toFixed(2)} ₪ ${p.comment ? ' ('+p.comment+')' : ''}`));
+        reportLines.push(`   סה"כ תשלומים רגילים: ${totalRegular.toFixed(2)} ₪`);
+        reportLines.push(``);
+        reportLines.push(`💰 תשלומים מיוחדים (לקרן חיסכון):`);
+        if(userSpecial.length === 0) reportLines.push(`   * אין תשלומים מיוחדים`);
+        else userSpecial.forEach(p => reportLines.push(`   • ${p.month} : ${p.amount.toFixed(2)} ₪ ${p.comment ? ' ('+p.comment+')' : ''}`));
+        reportLines.push(`   סה"כ תשלומים מיוחדים: ${totalSpecial.toFixed(2)} ₪`);
+        reportLines.push(``);
+        reportLines.push(`🚨 ניכויי חירום (מתוך הקרן המיוחדת):`);
+        if(userDeductions.length === 0) reportLines.push(`   * אין ניכויי חירום`);
+        else userDeductions.forEach(d => reportLines.push(`   • ${d.month} : ${d.amount.toFixed(2)} ₪ - ${d.description}`));
+        reportLines.push(`   סה"כ ניכויי חירום: ${totalDeductions.toFixed(2)} ₪`);
+        reportLines.push(``);
+        reportLines.push(`🏦 יתרת קרן מיוחדת (חיסכון) נטו: ${specialBalance.toFixed(2)} ₪`);
+        reportLines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+        reportLines.push(`📊 סיכום חודשי שנתי (תשלומים רגילים בלבד):`);
+        let currentYear = new Date().getFullYear().toString();
+        let regularByMonth = {};
+        userRegular.forEach(p => {
+            let month = p.month.slice(5);
+            regularByMonth[month] = (regularByMonth[month] || 0) + p.amount;
+        });
+        for(let m=1; m<=12; m++) {
+            let monthStr = m.toString().padStart(2,'0');
+            let paid = regularByMonth[monthStr] || 0;
+            let expected = monthlyFeeTarget;
+            reportLines.push(`   ${monthStr}/${currentYear}: שולם ${paid.toFixed(2)} ₪ / חודשי קבוע ${expected} ₪ → ${paid >= expected ? '✅' : '⚠️ חסר '+(expected-paid).toFixed(2)+' ₪'}`);
+        }
+        reportLines.push(``);
+        reportLines.push(`* דוח זה הופק אוטומטית ממערכת "אינדקס אחד".`);
+        
+        const fileContent = reportLines.join('\n');
+        const blob = new Blob([fileContent], {type: 'text/plain;charset=utf-8'});
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = `dow_${currentUser.name.replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        alert("✅ הדוח האישי נשמר כקובץ טקסט.");
+    }
+    
+    async function sendWhatsAppReceipt() { if(!isAdmin) return; let residentName = document.getElementById('incomeResidentSelect').value; let amount = document.getElementById('incomeAmountAdd').value; let month = document.getElementById('incomeMonthAdd').value; if(!residentName || !amount) { alert("יש לבחור דייר ולהזין סכום"); return; } let resident = residents.find(r => r.name === residentName); if(!resident || !resident.phone) { alert("לא נמצא מספר טלפון לדייר"); return; } let receiptMsg = `*קבלה על תשלום* 🧾\nדייר: ${resident.name}\nחודש: ${month}\nסכום: ${amount} ₪\nתודה!`; let cleanPhone = resident.phone.replace(/\D/g,''); if(!cleanPhone.startsWith('972')) cleanPhone='972'+cleanPhone; window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(receiptMsg)}`, '_blank'); }
+    
+    function saveMonthlyFee() { if(!isAdmin) { alert("רק מנהל יכול לשנות סכום זה"); return; } let newFee = parseFloat(document.getElementById('monthlyFeeTarget').value); if(isNaN(newFee) || newFee <= 0) { alert("סכום לא תקין"); return; } monthlyFeeTarget = newFee; saveAllData(); document.getElementById('monthlyFeeStatus').innerHTML = "✅ נשמר"; setTimeout(()=>document.getElementById('monthlyFeeStatus').innerHTML="",2000); renderResidentsSummary(); }
+    
+    function updateVisibilityByRole() {
+        const incomeNav = document.getElementById('incomeNavBtn');
+        const expensesNav = document.getElementById('expensesNavBtn');
+        const residentsNav = document.getElementById('residentsNavBtn');
+        const quickActionsCard = document.getElementById('quickActionsCard');
+        const residentsSummaryCard = document.getElementById('residentsSummaryCard');
+        const clearForumBtn = document.getElementById('clearForumBtn');
+        const clearVotesBtn = document.getElementById('clearVotesBtn');
+        const personalReportCardDashboard = document.getElementById('personalReportCardDashboard');
+        
+        if(clearForumBtn) clearForumBtn.style.display = isAdmin ? 'inline-block' : 'none';
+        if(clearVotesBtn) clearVotesBtn.style.display = isAdmin ? 'inline-block' : 'none';
+        if(personalReportCardDashboard) personalReportCardDashboard.style.display = currentUser ? 'block' : 'none';
+        
+        if(!isAdmin) {
+            if(incomeNav) incomeNav.classList.add('hidden-nav');
+            if(expensesNav) expensesNav.classList.add('hidden-nav');
+            if(quickActionsCard) quickActionsCard.style.display = 'none';
+            if(residentsSummaryCard && residentsSummaryCard.style) residentsSummaryCard.style.display = 'none';
+            if(document.getElementById('incomePage').classList.contains('active') || document.getElementById('expensesPage').classList.contains('active')) {
+                navigateTo('dashboard');
+            }
+        } else {
+            if(incomeNav) incomeNav.classList.remove('hidden-nav');
+            if(expensesNav) expensesNav.classList.remove('hidden-nav');
+            if(quickActionsCard) quickActionsCard.style.display = 'block';
+            if(residentsSummaryCard && residentsSummaryCard.style) residentsSummaryCard.style.display = 'block';
+        }
+        if(!currentUser && !isAdmin) {
+            if(incomeNav) incomeNav.classList.add('hidden-nav');
+            if(expensesNav) expensesNav.classList.add('hidden-nav');
+        }
+        if(currentUser && !isAdmin) {
+            if(residentsNav) residentsNav.style.display = 'none';
+        }
+        if(isAdmin && residentsNav) residentsNav.style.display = 'block';
+        else if(residentsNav) residentsNav.style.display = 'none';
+    }
+    
+    function renderAll() { 
+        updateResidentsSelect(); 
+        if(isAdmin) renderResidentsList(); 
+        renderDashboard(); 
+        if(isAdmin) {
+            renderIncome(); 
+            renderExpenses(); 
+        }
+        renderForum(); 
+        renderRecommendations(); 
+        renderAnnouncementsList(); 
+        renderResidentsSummary();
+        if(currentUser && !isAdmin) document.getElementById('personalReportCard').style.display = 'block';
+        else document.getElementById('personalReportCard').style.display = 'none';
+        let addIncomeForm = document.getElementById('addIncomeForm'), addExpenseForm = document.getElementById('addExpenseForm'); 
+        if(addIncomeForm) addIncomeForm.style.display = isAdmin ? 'block' : 'none'; 
+        if(addExpenseForm) addExpenseForm.style.display = isAdmin ? 'block' : 'none'; 
+        let adminArea = document.getElementById('announcementAdminArea'); let nonAdminMsg = document.getElementById('announcementNonAdminMsg'); 
+        if(adminArea && nonAdminMsg) { if(isAdmin) { adminArea.style.display = 'block'; nonAdminMsg.style.display = 'none'; renderAnnouncementsTargetSelect(); } else { adminArea.style.display = 'none'; nonAdminMsg.style.display = 'block'; } } 
+        updateMonthlyFeeInput();
+        updateVisibilityByRole();
+    }
+    
+    function navigateTo(page) { 
+        if(!isAdmin && (page === 'income' || page === 'expenses')) {
+            alert("עמוד זה זמין למנהל בלבד");
+            return;
+        }
+        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); 
+        document.getElementById(page+'Page').classList.add('active'); 
+        document.querySelectorAll('.nav-btn').forEach(btn=>btn.classList.remove('active')); 
+        let targetBtn = document.querySelector(`.nav-btn[data-page="${page}"]`); 
+        if(targetBtn) targetBtn.classList.add('active'); 
+    }
+    
+    function showAgreementModal(callback) { let modal = document.createElement('div'); modal.className='modal-overlay'; modal.innerHTML=`<div class="modal-content"><h3><i class="fas fa-handshake"></i> הסכם דייר</h3><div style="margin:15px 0;max-height:300px;overflow-y:auto;"><p>✅ כללי השימוש במערכת "אינדקס אחד":</p><p>• תשלום חודשי בזמן</p><p>• השתתפות פעילה</p><p>• כל הנתונים חסויים</p></div><label><input type="checkbox" id="agreeCheck"> אני מאשר/ת את התנאים</label><div style="display:flex;gap:10px;margin-top:20px;"><button id="acceptBtn" disabled style="flex:1;">אשר</button><button id="declineBtn" style="flex:1;background:#e53e3e;">דחה</button></div></div>`; document.body.appendChild(modal); let check=modal.querySelector('#agreeCheck'); let accept=modal.querySelector('#acceptBtn'); check.onchange=()=>accept.disabled=!check.checked; accept.onclick=()=>{modal.remove();callback(true);}; modal.querySelector('#declineBtn').onclick=()=>{modal.remove();callback(false);}; }
+    function checkAuth(phone, apt) { let clean=phone.replace(/\D/g,''); return residents.find(r=>{let rPhone=(r.phone||'').replace(/\D/g,''); return rPhone===clean && (r.apartment===apt || r.name.toLowerCase().includes(apt.toLowerCase()));}); }
+    function updateAuthUI() { 
+        let authCard=document.getElementById('authCard'); let incomeNav=document.getElementById('incomeNavBtn'); let expensesNav=document.getElementById('expensesNavBtn'); let residentsNav=document.getElementById('residentsNavBtn'); let userNameSpan=document.getElementById('userName'); let logoutBtn=document.getElementById('logoutBtn'); 
+        if(currentUser){ 
+            if(authCard) authCard.style.display='none'; 
+            userNameSpan.innerHTML=`<i class="fas fa-user-check"></i> ${escapeHtml(currentUser.name)}`; 
+            logoutBtn.style.display='inline-block'; 
+            if(incomeNav) incomeNav.classList.remove('disabled'); 
+            if(expensesNav) expensesNav.classList.remove('disabled'); 
+            showPendingAnnouncements(); 
+        } else { 
+            if(authCard) authCard.style.display='block'; 
+            userNameSpan.innerHTML=`<i class="fas fa-user"></i> אורח`; 
+            logoutBtn.style.display='none'; 
+            if(incomeNav) incomeNav.classList.add('disabled'); 
+            if(expensesNav) expensesNav.classList.add('disabled'); 
+        } 
+        if(isAdmin && residentsNav) residentsNav.style.display='block'; else if(residentsNav) residentsNav.style.display='none'; 
+        renderAll(); 
+    }
+    
+    document.querySelectorAll('.nav-btn').forEach(btn=>{btn.onclick=()=>{if(btn.classList.contains('disabled')&&btn.dataset.page!=='dashboard'){alert("יש להתחבר כדי לגשת למדור זה");return;} navigateTo(btn.dataset.page);};});
+    document.getElementById('quickAddIncomeBtn').onclick=()=>navigateTo('income'); 
+    document.getElementById('quickAddExpenseBtn').onclick=()=>navigateTo('expenses');
+    document.getElementById('addIncomeBtn').onclick=addIncome; 
+    document.getElementById('addExpenseBtn').onclick=addExpense; 
+    document.getElementById('postMsgDashboard').onclick=addForumMessage; 
+    document.getElementById('submitRecommendationBtn').onclick=submitRecommendation; 
+    document.getElementById('downloadPersonalReportBtn').onclick=downloadPersonalReport;
+    document.getElementById('downloadPersonalReportDashboardBtn').onclick=downloadPersonalReport;
+    document.getElementById('sendWhatsAppReceiptBtn').onclick=sendWhatsAppReceipt;
+    document.getElementById('addResidentBtn')?.addEventListener('click',addResident); 
+    document.getElementById('incomeYearFilter').onchange=()=>{if(isAdmin)renderIncome();}; 
+    document.getElementById('incomeMonthFilter').onchange=()=>{if(isAdmin)renderIncome();}; 
+    document.getElementById('expenseYearFilter').onchange=()=>{if(isAdmin)renderExpenses();}; 
+    document.getElementById('expenseMonthFilter').onchange=()=>{if(isAdmin)renderExpenses();};
+    document.getElementById('expenseFileAdd')?.addEventListener('change',(e)=>{if(e.target.files&&e.target.files[0]){selectedFile=e.target.files[0]; document.getElementById('fileNameDisplayAdd').innerHTML=`<i class="fas fa-file"></i> ${selectedFile.name.substring(0,30)}`;}else{selectedFile=null; document.getElementById('fileNameDisplayAdd').innerText='לא נבחר קובץ';}});
+    document.getElementById('authCheckBtn').onclick=()=>{let phone=document.getElementById('authPhone').value.trim(); let apt=document.getElementById('authApartment').value.trim(); if(!phone||!apt){alert("הכנס טלפון ומספר דירה");return;} let resident=checkAuth(phone,apt); if(!resident){alert("דייר לא נמצא. פנה למנהל.");return;} showAgreementModal((agree)=>{if(agree){currentUser={phone:phone,apartment:apt,name:resident.name}; localStorage.setItem('currentUser',JSON.stringify(currentUser)); updateAuthUI(); alert(`ברוך הבא, ${resident.name}!`);}});};
+    document.getElementById('logoutBtn').onclick=()=>{currentUser=null; isAdmin=false; localStorage.removeItem('currentUser'); updateAuthUI(); alert("התנתקת.");};
+    document.getElementById('adminBtn').onclick=()=>{let pwd=prompt("קוד גישה למנהל:"); if(pwd==="bafy2020"){isAdmin=true; renderAll(); alert("ברוך הבא, מנהל!");} else alert("קוד שגוי!");};
+    document.getElementById('createAnnouncementBtn').onclick=createAndSendAnnouncement;
+    document.getElementById('saveMonthlyFeeBtn').onclick=saveMonthlyFee;
+    document.getElementById('clearForumBtn')?.addEventListener('click', clearForum);
+    document.getElementById('clearVotesBtn')?.addEventListener('click', clearAllVotes);
+    
+    let savedUser=localStorage.getItem('currentUser'); if(savedUser){try{currentUser=JSON.parse(savedUser);}catch(e){currentUser=null;}}
+    loadAllData().then(()=>{updateAuthUI();});
+    window.deletePayment=deletePayment; window.deleteExpenseItem=deleteExpenseItem; window.editResident=editResident; window.deleteResident=deleteResident; window.voteForRecommendation=voteForRecommendation; window.deleteAnnouncement=deleteAnnouncement;
+</script>
+</body>
+</html>
