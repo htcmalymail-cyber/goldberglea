@@ -89,7 +89,7 @@
         
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 20px;
             margin-bottom: 25px;
         }
@@ -103,6 +103,7 @@
         .stat-card.expense { background: linear-gradient(135deg, #eb3349, #f45c43); }
         .stat-card.emergency { background: linear-gradient(135deg, #f2994a, #f2c94c); }
         .stat-card.balance { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .stat-card.emergency-fund { background: linear-gradient(135deg, #8e2de2, #4a00e0); }
         .stat-card h3 { font-size: 0.9rem; opacity: 0.9; margin-bottom: 10px; }
         .stat-card .value { font-size: 1.8rem; font-weight: 800; }
         .stat-card .sub { font-size: 0.8rem; opacity: 0.8; margin-top: 8px; }
@@ -187,14 +188,44 @@
         .page { display: none; }
         .page.active { display: block; }
         
-        .resident-payment {
+        .forum-message {
             background: #f7fafc;
             border-radius: 16px;
             padding: 12px;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .receipt-img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .restricted-badge {
+            background: #edf2f7;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #718096;
+        }
+        
+        .delete-btn, .edit-btn {
+            padding: 4px 8px;
+            margin: 0 3px;
+            font-size: 0.75rem;
+        }
+        .delete-btn { background: #e53e3e; }
+        .edit-btn { background: #ed8936; }
+        
+        .resident-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
         }
         
         .sync-status {
@@ -223,30 +254,6 @@
             border: none;
         }
         
-        .forum-message {
-            background: #f7fafc;
-            border-radius: 16px;
-            padding: 12px;
-            margin-bottom: 12px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .receipt-img {
-            width: 40px;
-            height: 40px;
-            object-fit: cover;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        
-        .restricted-badge {
-            background: #edf2f7;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            color: #718096;
-        }
-        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -268,6 +275,7 @@
         <button class="nav-btn active" data-page="dashboard">📊 Дашборд</button>
         <button class="nav-btn" data-page="income" id="incomeNavBtn">💰 Доходы</button>
         <button class="nav-btn" data-page="expenses" id="expensesNavBtn">📝 Расходы</button>
+        <button class="nav-btn" data-page="residents" id="residentsNavBtn" style="display: none;">👥 Жильцы</button>
     </div>
     <div id="userInfo" style="display: flex; gap: 10px; align-items: center;">
         <span id="userName"></span>
@@ -309,10 +317,15 @@
                 <div class="value" id="totalEmergencyExpenses">0 ₽</div>
                 <div class="sub">Расходы > 500₽ (всего)</div>
             </div>
+            <div class="stat-card emergency-fund">
+                <h3><i class="fas fa-piggy-bank"></i> Касса экстренных случаев</h3>
+                <div class="value" id="emergencyCashFund">0 ₽</div>
+                <div class="sub">Специальный резервный фонд</div>
+            </div>
             <div class="stat-card balance">
-                <h3><i class="fas fa-piggy-bank"></i> Текущий остаток</h3>
-                <div class="value" id="totalBalance">0 ₽</div>
-                <div class="sub">Доходы - Расходы</div>
+                <h3><i class="fas fa-wallet"></i> Основная касса</h3>
+                <div class="value" id="mainCashBalance">0 ₽</div>
+                <div class="sub">Доходы - Обычные расходы</div>
             </div>
         </div>
         
@@ -328,7 +341,7 @@
                     <div id="totalExpensesAll" style="font-size: 1.5rem; color: #e53e3e;">0 ₽</div>
                 </div>
                 <div>
-                    <strong>⚖️ Остаток в кассе:</strong>
+                    <strong>⚖️ Общий остаток:</strong>
                     <div id="totalBalanceAll" style="font-size: 1.5rem; color: #667eea;">0 ₽</div>
                 </div>
             </div>
@@ -388,7 +401,7 @@
             <div style="overflow-x: auto;">
                 <table id="incomeTable">
                     <thead>
-                        <tr><th>Дата</th><th>Плательщик</th><th>Тип</th><th>Сумма</th><th>Комментарий</th></tr>
+                        <tr><th>Дата</th><th>Плательщик</th><th>Тип</th><th>Сумма</th><th>Комментарий</th><th></th></tr>
                     </thead>
                     <tbody id="incomeTableBody"></tbody>
                 </table>
@@ -403,8 +416,8 @@
                     <option value="">Выберите жильца</option>
                 </select>
                 <select id="incomeTypeSelect">
-                    <option value="regular">📋 Ежемесячный взнос (в кассу)</option>
-                    <option value="emergency_fund">🆘 В резервный фонд</option>
+                    <option value="regular">📋 Ежемесячный взнос (в основную кассу)</option>
+                    <option value="emergency_fund">🆘 В кассу экстренных случаев</option>
                     <option value="special">💰 Специальный платеж</option>
                 </select>
                 <input type="number" id="incomeAmountAdd" placeholder="Сумма ₽">
@@ -451,7 +464,9 @@
             </div>
             <div style="overflow-x: auto; max-height: 400px; overflow-y: auto;">
                 <table id="expensesTable">
-                    <thead><tr><th>Дата</th><th>Описание</th><th>Сумма</th><th>Тип</th><th>Комментарий</th><th>Чек</th><th></th></tr></thead>
+                    <thead>
+                        <tr><th>Дата</th><th>Описание</th><th>Сумма</th><th>Тип</th><th>Комментарий</th><th>Чек</th><th></th></tr>
+                    </thead>
                     <tbody id="expensesTableBody"></tbody>
                 </table>
             </div>
@@ -462,6 +477,10 @@
             <div class="card-title"><i class="fas fa-plus-circle"></i> Добавить расход (Куратор)</div>
             <div class="form-group">
                 <input type="text" id="expenseDesc" placeholder="Описание" style="flex: 2;">
+                <select id="expenseTypeSelect">
+                    <option value="normal">📋 Обычный расход (из основной кассы)</option>
+                    <option value="emergency">🚨 Экстренный расход (из кассы экстренных случаев)</option>
+                </select>
                 <input type="number" id="expenseAmount" placeholder="Сумма ₽">
                 <input type="month" id="expenseMonthAdd" value="2026-01">
             </div>
@@ -479,13 +498,27 @@
             <div id="uploadStatusMsg" style="font-size: 0.75rem; color: #667eea;"></div>
         </div>
     </div>
+    
+    <!-- Страница Управления жильцами (только для куратора) -->
+    <div id="residentsPage" class="page">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-users"></i> Управление жильцами</div>
+            <div class="form-group">
+                <input type="text" id="newResidentName" placeholder="ФИО жильца" style="flex: 2;">
+                <input type="text" id="newResidentApartment" placeholder="Номер квартиры" style="flex: 1;">
+                <input type="tel" id="newResidentPhone" placeholder="Телефон" style="flex: 2;">
+                <button id="addResidentBtn" style="background: #38a169;"><i class="fas fa-plus"></i> Добавить</button>
+            </div>
+            <div id="residentsListContainer"></div>
+        </div>
+    </div>
 </div>
 
 <button class="admin-badge" id="adminBtn">👑 Вход куратора</button>
 <div class="sync-status" id="syncStatus">☁️ Подключение...</div>
 
 <script>
-    // ========== FIREBASE (сохраненные данные) ==========
+    // ========== FIREBASE ==========
     const firebaseConfig = {
         apiKey: "AIzaSyCbMAYlOnkl1E4hJ-dVsbCuFaSfMNjjV68",
         authDomain: "goldberg-lea.firebaseapp.com",
@@ -503,7 +536,6 @@
     let expenses = [];
     let forum = [];
     let residents = [];
-    let monthlyDue = 70;
     let isAdmin = false;
     let currentUser = null;
     let selectedFile = null;
@@ -531,7 +563,6 @@
                 expenses = (data.expenses || []).filter(e => e.month >= '2026-01');
                 forum = data.forum || [];
                 residents = data.residents || [];
-                monthlyDue = data.monthlyDue || 70;
             }
             if(residents.length === 0) {
                 residents = [
@@ -560,7 +591,6 @@
         saveToFirebase('/expenses', expenses);
         saveToFirebase('/forum', forum);
         saveToFirebase('/residents', residents);
-        saveToFirebase('/monthlyDue', monthlyDue);
     }
     
     // ========== Расчеты для дашборда ==========
@@ -570,12 +600,28 @@
     }
     
     function getCurrentMonthExpenses() {
-        return expenses.filter(e => e.month === currentDashboardMonth && e.amount <= 500)
+        return expenses.filter(e => e.month === currentDashboardMonth && e.expenseType !== 'emergency' && e.amount <= 500)
             .reduce((sum, e) => sum + e.amount, 0);
     }
     
     function getEmergencyExpenses() {
-        return expenses.filter(e => e.amount > 500).reduce((sum, e) => sum + e.amount, 0);
+        return expenses.filter(e => e.amount > 500 || e.expenseType === 'emergency').reduce((sum, e) => sum + e.amount, 0);
+    }
+    
+    function getEmergencyCashFund() {
+        // Средства, поступившие в кассу экстренных случаев
+        let emergencyIncome = payments.filter(p => p.type === 'emergency_fund').reduce((sum, p) => sum + p.amount, 0);
+        // Расходы из кассы экстренных случаев
+        let emergencyOutcome = expenses.filter(e => e.expenseType === 'emergency').reduce((sum, e) => sum + e.amount, 0);
+        return emergencyIncome - emergencyOutcome;
+    }
+    
+    function getMainCashBalance() {
+        // Доходы в основную кассу (регулярные платежи)
+        let mainIncome = payments.filter(p => p.type === 'regular').reduce((sum, p) => sum + p.amount, 0);
+        // Обычные расходы
+        let mainExpenses = expenses.filter(e => e.expenseType !== 'emergency' && e.amount <= 500).reduce((sum, e) => sum + e.amount, 0);
+        return mainIncome - mainExpenses;
     }
     
     function getTotalIncome() {
@@ -596,16 +642,19 @@
         document.getElementById('totalMonthlyFees').innerHTML = getCurrentMonthPayments().toFixed(2) + ' ₽';
         document.getElementById('totalMonthlyExpenses').innerHTML = getCurrentMonthExpenses().toFixed(2) + ' ₽';
         document.getElementById('totalEmergencyExpenses').innerHTML = getEmergencyExpenses().toFixed(2) + ' ₽';
-        document.getElementById('totalBalance').innerHTML = (getCurrentMonthPayments() - getCurrentMonthExpenses()).toFixed(2) + ' ₽';
+        document.getElementById('emergencyCashFund').innerHTML = getEmergencyCashFund().toFixed(2) + ' ₽';
+        document.getElementById('mainCashBalance').innerHTML = getMainCashBalance().toFixed(2) + ' ₽';
         document.getElementById('totalIncome').innerHTML = getTotalIncome().toFixed(2) + ' ₽';
         document.getElementById('totalExpensesAll').innerHTML = getTotalExpenses().toFixed(2) + ' ₽';
         document.getElementById('totalBalanceAll').innerHTML = (getTotalIncome() - getTotalExpenses()).toFixed(2) + ' ₽';
         
-        // Рекомендации
         let balance = getTotalIncome() - getTotalExpenses();
         let recommendationsHtml = '';
         if(balance < 0) {
             recommendationsHtml += '<p><i class="fas fa-exclamation-triangle" style="color: #e53e3e;"></i> ⚠️ Расходы превышают доходы! Необходимо сократить траты.</p>';
+        }
+        if(getEmergencyCashFund() < 0) {
+            recommendationsHtml += '<p><i class="fas fa-piggy-bank" style="color: #ed8936;"></i> 💡 Касса экстренных случаев пуста! Рекомендуется пополнить.</p>';
         }
         if(getEmergencyExpenses() > getTotalIncome() * 0.3) {
             recommendationsHtml += '<p><i class="fas fa-ambulance"></i> 🚨 Высокие экстренные расходы. Проверьте необходимость трат >500₽.</p>';
@@ -616,7 +665,7 @@
         document.getElementById('recommendations').innerHTML = recommendationsHtml;
     }
     
-    // ========== Рендеринг доходов (с ограничением для гостей) ==========
+    // ========== Рендеринг доходов ==========
     function renderIncome() {
         let year = document.getElementById('incomeYearFilter').value;
         let month = document.getElementById('incomeMonthFilter').value;
@@ -627,18 +676,17 @@
         let tbody = document.getElementById('incomeTableBody');
         
         if(!currentUser) {
-            // Гость видит только общие суммы, без деталей
             let totalByType = { regular: 0, emergency_fund: 0, special: 0 };
             filtered.forEach(p => { totalByType[p.type] = (totalByType[p.type] || 0) + p.amount; });
             tbody.innerHTML = `
-                <tr><td colspan="5" style="text-align: center;">
+                <tr><td colspan="6" style="text-align: center;">
                     <div class="restricted-badge">
                         🔒 Для просмотра деталей доходов необходимо авторизоваться
                     </div>
                     <div style="margin-top: 10px;">
                         <strong>📊 Сводка за период:</strong><br>
-                        Ежемесячные взносы: ${totalByType.regular?.toFixed(2) || 0} ₽<br>
-                        В резервный фонд: ${totalByType.emergency_fund?.toFixed(2) || 0} ₽<br>
+                        В основную кассу: ${totalByType.regular?.toFixed(2) || 0} ₽<br>
+                        В кассу экстренных случаев: ${totalByType.emergency_fund?.toFixed(2) || 0} ₽<br>
                         Специальные платежи: ${totalByType.special?.toFixed(2) || 0} ₽
                     </div>
                 </td></tr>
@@ -646,22 +694,21 @@
             return;
         }
         
-        // Авторизованный пользователь видит все детали
         tbody.innerHTML = filtered.map(p => `
             <tr>
                 <td>${p.month}</td>
                 <td>${escapeHtml(p.payer)}</td>
-                <td>${p.type === 'regular' ? '📋 Ежемесячный' : p.type === 'emergency_fund' ? '🆘 В резервный фонд' : '💰 Специальный'}</td>
+                <td>${p.type === 'regular' ? '📋 В основную кассу' : p.type === 'emergency_fund' ? '🆘 В кассу экстренных случаев' : '💰 Специальный'}</td>
                 <td class="amount-positive">${p.amount.toFixed(2)} ₽</td>
                 <td class="comment-text">${escapeHtml(p.comment || '-')}</td>
+                <td>${isAdmin ? `<button class="delete-btn" onclick="deletePayment('${p.id}')"><i class="fas fa-trash"></i></button>` : ''}</td>
             </tr>
         `).join('');
         
         if(filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Нет данных</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Нет данных</td></tr>';
         }
         
-        // Личный отчет для авторизованного жильца
         renderPersonalReport();
     }
     
@@ -677,14 +724,14 @@
         let reportHtml = `
             <div style="background: #f0fff4; border-radius: 16px; padding: 15px;">
                 <p><strong>👤 Жилец:</strong> ${escapeHtml(currentUser.name)} (кв. ${escapeHtml(currentUser.apartment)})</p>
-                <p><strong>📋 Ежемесячные взносы:</strong> ${totalRegular.toFixed(2)} ₽</p>
-                <p><strong>🆘 В резервный фонд:</strong> ${totalEmergencyFund.toFixed(2)} ₽</p>
+                <p><strong>📋 В основную кассу:</strong> ${totalRegular.toFixed(2)} ₽</p>
+                <p><strong>🆘 В кассу экстренных случаев:</strong> ${totalEmergencyFund.toFixed(2)} ₽</p>
                 <p><strong>💰 Специальные платежи:</strong> ${totalSpecial.toFixed(2)} ₽</p>
                 <p><strong>💳 ОБЩАЯ СУММА ВКЛАДА:</strong> <span style="font-size: 1.3rem; font-weight: bold; color: #38a169;">${totalAll.toFixed(2)} ₽</span></p>
                 <hr style="margin: 10px 0;">
                 <p><strong>📅 История платежей:</strong></p>
                 <ul style="margin-top: 8px;">
-                    ${userPayments.map(p => `<li>${p.month}: ${p.amount.toFixed(2)} ₽ (${p.type === 'regular' ? 'ежемесячный' : p.type === 'emergency_fund' ? 'в резервный фонд' : 'специальный'})${p.comment ? ' - ' + escapeHtml(p.comment) : ''}</li>`).join('')}
+                    ${userPayments.map(p => `<li>${p.month}: ${p.amount.toFixed(2)} ₽ (${p.type === 'regular' ? 'в основную кассу' : p.type === 'emergency_fund' ? 'в кассу экстренных случаев' : 'специальный'})${p.comment ? ' - ' + escapeHtml(p.comment) : ''}</li>`).join('')}
                 </ul>
                 ${userPayments.length === 0 ? '<p>Нет платежей</p>' : ''}
             </div>
@@ -697,7 +744,7 @@
         }
     }
     
-    // ========== Рендеринг расходов (с ограничением для гостей) ==========
+    // ========== Рендеринг расходов ==========
     function renderExpenses() {
         let year = document.getElementById('expenseYearFilter').value;
         let month = document.getElementById('expenseMonthFilter').value;
@@ -708,9 +755,8 @@
         let tbody = document.getElementById('expensesTableBody');
         
         if(!currentUser) {
-            // Гость видит только общие суммы
-            let totalNormal = filtered.filter(e => e.amount <= 500).reduce((s,e) => s + e.amount, 0);
-            let totalEmergency = filtered.filter(e => e.amount > 500).reduce((s,e) => s + e.amount, 0);
+            let totalNormal = filtered.filter(e => e.expenseType !== 'emergency' && e.amount <= 500).reduce((s,e) => s + e.amount, 0);
+            let totalEmergency = filtered.filter(e => e.amount > 500 || e.expenseType === 'emergency').reduce((s,e) => s + e.amount, 0);
             tbody.innerHTML = `
                 <tr><td colspan="7" style="text-align: center;">
                     <div class="restricted-badge">
@@ -721,27 +767,134 @@
                         Обычные расходы: ${totalNormal.toFixed(2)} ₽<br>
                         Экстренные расходы: ${totalEmergency.toFixed(2)} ₽
                     </div>
-                 </td>
+                  </td>
                 </tr>
             `;
             return;
         }
         
-        // Авторизованный пользователь видит все детали
         tbody.innerHTML = filtered.map(e => `
             <tr>
                 <td>${e.month}</td>
                 <td>${escapeHtml(e.desc)}</td>
                 <td class="amount-negative">${e.amount.toFixed(2)} ₽</td>
-                <td>${e.amount > 500 ? '🚨 Экстренный' : '📋 Обычный'}</td>
+                <td>${e.expenseType === 'emergency' ? '🚨 Экстренный (из кассы ЧС)' : (e.amount > 500 ? '🚨 Экстренный' : '📋 Обычный')}</td>
                 <td class="comment-text">${escapeHtml(e.comment || '-')}</td>
                 <td>${e.cloudUrl ? `<img src="${e.cloudUrl}" class="receipt-img" onclick="window.open('${e.cloudUrl}')" title="Клик для просмотра">` : '❌'}</td>
-                <td>${isAdmin ? `<i class="fas fa-trash-alt" style="color: #e53e3e; cursor: pointer;" onclick="deleteExpenseItem('${e.id}')"></i>` : ''}</td>
+                <td>${isAdmin ? `<button class="delete-btn" onclick="deleteExpenseItem('${e.id}')"><i class="fas fa-trash"></i></button>` : ''}</td>
             </tr>
         `).join('');
         
         if(filtered.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Нет данных</td></tr>';
+        }
+    }
+    
+    // ========== Управление жильцами ==========
+    function renderResidentsList() {
+        let container = document.getElementById('residentsListContainer');
+        if(!container || !isAdmin) return;
+        
+        container.innerHTML = residents.map(r => `
+            <div class="resident-item">
+                <div><strong>${escapeHtml(r.name)}</strong><br><small>кв. ${escapeHtml(r.apartment)} | 📱 ${r.phone}</small></div>
+                <div>
+                    <button class="edit-btn" onclick="editResident('${r.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="delete-btn" onclick="deleteResident('${r.id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `).join('');
+        
+        if(residents.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 20px;">Нет жильцов</div>';
+        }
+    }
+    
+    function addResident() {
+        if(!isAdmin) return;
+        let name = document.getElementById('newResidentName').value.trim();
+        let apartment = document.getElementById('newResidentApartment').value.trim();
+        let phone = document.getElementById('newResidentPhone').value.trim();
+        
+        if(!name || !apartment || !phone) {
+            alert("Заполните все поля");
+            return;
+        }
+        
+        let cleanPhone = phone.replace(/\D/g, '');
+        if(!cleanPhone.startsWith('972')) cleanPhone = '972' + cleanPhone;
+        
+        residents.push({
+            id: 'r' + Date.now(),
+            name: name,
+            apartment: apartment,
+            phone: cleanPhone
+        });
+        saveAllData();
+        
+        document.getElementById('newResidentName').value = '';
+        document.getElementById('newResidentApartment').value = '';
+        document.getElementById('newResidentPhone').value = '';
+        
+        updateResidentsSelect();
+        renderResidentsList();
+        alert("Жилец добавлен");
+    }
+    
+    function editResident(id) {
+        if(!isAdmin) return;
+        let resident = residents.find(r => r.id === id);
+        if(!resident) return;
+        
+        let newName = prompt("Новое имя:", resident.name);
+        if(newName) resident.name = newName;
+        let newApartment = prompt("Номер квартиры:", resident.apartment);
+        if(newApartment) resident.apartment = newApartment;
+        let newPhone = prompt("Телефон:", resident.phone);
+        if(newPhone) {
+            let cleanPhone = newPhone.replace(/\D/g, '');
+            if(!cleanPhone.startsWith('972')) cleanPhone = '972' + cleanPhone;
+            resident.phone = cleanPhone;
+        }
+        saveAllData();
+        updateResidentsSelect();
+        renderResidentsList();
+        alert("Данные обновлены");
+    }
+    
+    function deleteResident(id) {
+        if(!isAdmin) return;
+        if(confirm("Удалить жильца? Это также удалит все его платежи!")) {
+            let resident = residents.find(r => r.id === id);
+            if(resident) {
+                payments = payments.filter(p => p.payer !== resident.name);
+                residents = residents.filter(r => r.id !== id);
+                saveAllData();
+                updateResidentsSelect();
+                renderResidentsList();
+                renderAll();
+                alert("Жилец удален");
+            }
+        }
+    }
+    
+    function deletePayment(id) {
+        if(!isAdmin) return;
+        if(confirm("Удалить платеж?")) {
+            payments = payments.filter(p => p.id !== id);
+            saveAllData();
+            renderAll();
+            alert("Платеж удален");
+        }
+    }
+    
+    function deleteExpenseItem(id) {
+        if(!isAdmin) return;
+        if(confirm("Удалить расход?")) {
+            expenses = expenses.filter(e => e.id !== id);
+            saveAllData();
+            renderAll();
+            alert("Расход удален");
         }
     }
     
@@ -779,8 +932,8 @@
             [],
             ["Сводка по платежам:"],
             ["Тип платежа", "Сумма"],
-            ["Ежемесячные взносы", `${totalRegular.toFixed(2)} ₽`],
-            ["В резервный фонд", `${totalEmergencyFund.toFixed(2)} ₽`],
+            ["В основную кассу", `${totalRegular.toFixed(2)} ₽`],
+            ["В кассу экстренных случаев", `${totalEmergencyFund.toFixed(2)} ₽`],
             ["Специальные платежи", `${totalSpecial.toFixed(2)} ₽`],
             ["ОБЩАЯ СУММА", `${totalAll.toFixed(2)} ₽`],
             [],
@@ -789,7 +942,7 @@
         ];
         
         userPayments.forEach(p => {
-            let typeText = p.type === 'regular' ? 'Ежемесячный' : (p.type === 'emergency_fund' ? 'В резервный фонд' : 'Специальный');
+            let typeText = p.type === 'regular' ? 'В основную кассу' : (p.type === 'emergency_fund' ? 'В кассу экстренных случаев' : 'Специальный');
             csvRows.push([p.month, typeText, `${p.amount.toFixed(2)} ₽`, p.comment || '']);
         });
         
@@ -804,7 +957,7 @@
         alert(`✅ Отчет скачан!\nОбщая сумма ваших взносов: ${totalAll.toFixed(2)} ₽`);
     }
     
-    // ========== Добавление дохода (только куратор) ==========
+    // ========== Добавление дохода ==========
     function addIncome() {
         if(!isAdmin) { alert("Только куратор может добавлять доходы"); return; }
         
@@ -840,6 +993,7 @@
     async function addExpense() {
         if(!isAdmin) return;
         let desc = document.getElementById('expenseDesc').value.trim();
+        let expenseType = document.getElementById('expenseTypeSelect').value;
         let amount = parseFloat(document.getElementById('expenseAmount').value);
         let month = document.getElementById('expenseMonthAdd').value;
         let comment = document.getElementById('expenseComment').value.trim();
@@ -879,6 +1033,7 @@
                 desc: desc,
                 amount: amount,
                 month: month,
+                expenseType: expenseType,
                 comment: comment,
                 cloudUrl: cloudUrl,
                 fileName: fileName
@@ -920,14 +1075,6 @@
         renderAll();
     }
     
-    function deleteExpenseItem(id) {
-        if(isAdmin && confirm("Удалить расход?")) {
-            expenses = expenses.filter(e => e.id !== id);
-            saveAllData();
-            renderAll();
-        }
-    }
-    
     function updateResidentsSelect() {
         let select = document.getElementById('incomeResidentSelect');
         if(select) {
@@ -947,7 +1094,7 @@
                     <p>✅ <strong>Правила пользования системой "Индекс один":</strong></p>
                     <p>• Своевременная оплата ежемесячных взносов</p>
                     <p>• Активное участие в жизни сообщества</p>
-                    <p>• Расходы свыше 500₽ распределяются между всеми жильцами</p>
+                    <p>• Расходы свыше 500₽ относятся к экстренным</p>
                     <p>• Все данные о платежах конфиденциальны</p>
                     <p style="margin-top: 10px;">💚 Вместе строим лучший дом!</p>
                 </div>
@@ -981,6 +1128,7 @@
         let authCard = document.getElementById('authCard');
         let incomeNav = document.getElementById('incomeNavBtn');
         let expensesNav = document.getElementById('expensesNavBtn');
+        let residentsNav = document.getElementById('residentsNavBtn');
         let userNameSpan = document.getElementById('userName');
         let logoutBtn = document.getElementById('logoutBtn');
         
@@ -998,7 +1146,9 @@
             if(expensesNav) expensesNav.classList.add('disabled');
         }
         
-        // Обновляем доступ к страницам
+        if(isAdmin && residentsNav) residentsNav.style.display = 'block';
+        else if(residentsNav) residentsNav.style.display = 'none';
+        
         if(!currentUser && document.querySelector('.page.active').id !== 'dashboardPage') {
             navigateTo('dashboard');
         }
@@ -1016,6 +1166,7 @@
     
     function renderAll() {
         updateResidentsSelect();
+        if(isAdmin) renderResidentsList();
         renderDashboard();
         renderIncome();
         renderExpenses();
@@ -1045,6 +1196,7 @@
     document.getElementById('addExpenseBtn').onclick = addExpense;
     document.getElementById('postMsgDashboard').onclick = addForumMessage;
     document.getElementById('downloadPersonalReportBtn').onclick = downloadPersonalReport;
+    document.getElementById('addResidentBtn')?.addEventListener('click', addResident);
     
     document.getElementById('incomeYearFilter').onchange = renderIncome;
     document.getElementById('incomeMonthFilter').onchange = renderIncome;
@@ -1091,7 +1243,7 @@
         if(pwd === "bafy2020") {
             isAdmin = true;
             renderAll();
-            alert("Добро пожаловать, куратор! Вы можете добавлять доходы и расходы.");
+            alert("Добро пожаловать, куратор! Вы можете добавлять/удалять платежи и управлять жильцами.");
         } else alert("Неверный код!");
     };
     
@@ -1100,15 +1252,18 @@
     if(savedUser) {
         try {
             currentUser = JSON.parse(savedUser);
-            // Проверяем, существует ли еще такой жилец
-            let stillExists = residents.some(r => r.name === currentUser.name);
-            if(!stillExists) currentUser = null;
         } catch(e) { currentUser = null; }
     }
     
     loadAllData().then(() => {
         updateAuthUI();
     });
+    
+    // Экспорт функций в глобальную область
+    window.deletePayment = deletePayment;
+    window.deleteExpenseItem = deleteExpenseItem;
+    window.editResident = editResident;
+    window.deleteResident = deleteResident;
 </script>
 </body>
 </html>
