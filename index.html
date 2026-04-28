@@ -165,13 +165,12 @@
         .page { display: none; }
         .page.active { display: block; }
         .forum-message { background: #f7fafc; border-radius: 16px; padding: 12px; margin-bottom: 12px; border-right: 4px solid #667eea; }
-        .delete-btn, .edit-btn, .vote-btn, .whatsapp-btn, .delete-announcement-btn, .clear-forum-btn, .clear-votes-btn { padding: 4px 8px; margin: 0 3px; font-size: 0.75rem; }
+        .delete-btn, .edit-btn, .vote-btn, .whatsapp-btn, .delete-announcement-btn { padding: 4px 8px; margin: 0 3px; font-size: 0.75rem; }
         .delete-btn { background: #e53e3e; }
         .edit-btn { background: #ed8936; }
         .vote-btn { background: #38a169; }
         .whatsapp-btn { background: #25D366; }
         .delete-announcement-btn { background: #e53e3e; }
-        .clear-forum-btn, .clear-votes-btn { background: #e53e3e; }
         .resident-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #e2e8f0; }
         .sync-status { position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; z-index: 999; }
         .admin-badge { position: fixed; bottom: 20px; left: 20px; background: linear-gradient(135deg, #667eea, #764ba2); padding: 12px 24px; border-radius: 50px; cursor: pointer; z-index: 999; color: white; font-weight: bold; border: none; }
@@ -238,15 +237,6 @@
             </div>
         </div>
 
-        <!-- כרטיס דוח אישי (למשתמש מחובר) -->
-        <div class="card" id="personalReportCardDashboard" style="display: none;">
-            <div class="card-title"><i class="fas fa-user-chart"></i> הדוח האישי שלי</div>
-            <div class="form-group">
-                <button id="downloadPersonalReportDashboardBtn" style="background:#38a169;"><i class="fas fa-download"></i> 📄 הורד דוח תשלומים מלא + הוצאות הבית (קובץ טקסט)</button>
-            </div>
-            <div id="personalReportContentDashboard" class="sub" style="color:#4a5568;">לחץ להורדת דוח מפורט הכולל את כל התשלומים שלך, ניכויי חירום, והוצאות הבית בשנה האחרונה.</div>
-        </div>
-
         <!-- תשלום חודשי קבוע - עורך רק למנהל -->
         <div class="card">
             <div class="card-title"><i class="fas fa-calendar-alt"></i> תשלום חודשי קבוע</div>
@@ -266,8 +256,8 @@
         </div>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
-            <div class="card"><div class="card-title"><i class="fas fa-comments"></i> פורום דיירים</div><div id="forumAccessWarning" style="display:none;background:#fed7d7;padding:12px;border-radius:12px;margin-bottom:15px;color:#742a2a;"><i class="fas fa-lock"></i> הפורום זמין רק לדיירים מורשים. <a href="#" id="loginLinkFromForum" style="color:#667eea;">התחבר</a> כדי להשתתף.</div><div class="form-group" id="forumPostArea" style="flex-direction: column; display: none;"><textarea id="forumMsgDashboard" rows="2" placeholder="ההודעה שלך..." style="width: 100%;"></textarea><div style="display: flex; gap: 10px;"><button id="postMsgDashboard"><i class="fas fa-paper-plane"></i> שלח</button><button id="clearForumBtn" class="clear-forum-btn" style="background:#e53e3e; display: none;"><i class="fas fa-trash-alt"></i> 🗑️ נקה פורום</button></div></div><div id="forumContainer" style="max-height: 300px; overflow-y: auto;"></div></div>
-            <div class="card"><div class="card-title"><i class="fas fa-lightbulb"></i> הצעות והצבעות</div><div id="recommendationAccessWarning" style="display:none;background:#fed7d7;padding:12px;border-radius:12px;margin-bottom:15px;color:#742a2a;"><i class="fas fa-lock"></i> ההצעות זמינות רק לדיירים מורשים.</div><div id="recommendationsPostArea" style="display: none;"><div class="form-group" style="flex-direction: column;"><textarea id="newRecommendationText" rows="2" placeholder="הצע רעיון לשיפור הבית..." style="width: 100%;"></textarea><div style="display: flex; gap: 10px;"><button id="submitRecommendationBtn"><i class="fas fa-plus-circle"></i> הצע רעיון</button><button id="clearVotesBtn" class="clear-votes-btn" style="background:#e53e3e; display: none;"><i class="fas fa-eraser"></i> 🗳️ נקה הצבעות</button></div></div></div><div id="recommendations"></div></div>
+            <div class="card"><div class="card-title"><i class="fas fa-comments"></i> פורום דיירים</div><div id="forumAccessWarning" style="display:none;background:#fed7d7;padding:12px;border-radius:12px;margin-bottom:15px;color:#742a2a;"><i class="fas fa-lock"></i> הפורום זמין רק לדיירים מורשים. <a href="#" id="loginLinkFromForum" style="color:#667eea;">התחבר</a> כדי להשתתף.</div><div class="form-group" id="forumPostArea" style="flex-direction: column; display: none;"><textarea id="forumMsgDashboard" rows="2" placeholder="ההודעה שלך..." style="width: 100%;"></textarea><button id="postMsgDashboard"><i class="fas fa-paper-plane"></i> שלח</button></div><div id="forumContainer" style="max-height: 300px; overflow-y: auto;"></div></div>
+            <div class="card"><div class="card-title"><i class="fas fa-lightbulb"></i> הצעות והצבעות</div><div id="recommendationAccessWarning" style="display:none;background:#fed7d7;padding:12px;border-radius:12px;margin-bottom:15px;color:#742a2a;"><i class="fas fa-lock"></i> ההצעות זמינות רק לדיירים מורשים.</div><div id="recommendationsPostArea" style="display: none;"><div class="form-group" style="flex-direction: column;"><textarea id="newRecommendationText" rows="2" placeholder="הצע רעיון לשיפור הבית..." style="width: 100%;"></textarea><button id="submitRecommendationBtn"><i class="fas fa-plus-circle"></i> הצע רעיון</button></div></div><div id="recommendations"></div></div>
         </div>
     </div>
     
@@ -277,7 +267,7 @@
             <div class="filter-bar">
                 <select id="incomeYearFilter"><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option></select>
                 <select id="incomeMonthFilter"><option value="all">כל החודשים</option><option value="01">ינואר</option><option value="02">פברואר</option><option value="03">מרץ</option><option value="04">אפריל</option><option value="05">מאי</option><option value="06">יוני</option><option value="07">יולי</option><option value="08">אוגוסט</option><option value="09">ספטמבר</option><option value="10">אוקטובר</option><option value="11">נובמבר</option><option value="12">דצמבר</option></select>
-                <button id="downloadPersonalReportBtn" style="background:#38a169;"><i class="fas fa-download"></i> הורד דוח אישי מפורט</button>
+                <button id="downloadPersonalReportBtn" style="background:#38a169;"><i class="fas fa-download"></i> הורד דוח אישי</button>
             </div>
             <div style="overflow-x:auto;"><table id="incomeTable"><thead><tr><th>תאריך</th><th>משלם</th><th>סוג</th><th>סכום</th><th>הערה</th><th></th></tr></thead><tbody id="incomeTableBody"></tbody></table></div>
         </div>
@@ -421,7 +411,7 @@
                         <td class="amount-positive">${totalSpecial.toFixed(2)} ₪</td>
                         <td class="${specialBalance >= 0 ? 'amount-positive' : 'amount-negative'}">${specialBalance.toFixed(2)} ₪</td>
                         <td class="${diffClass}">${diffText}</td>
-                      </tr>`;
+                     </tr>`;
         });
         tbody.innerHTML = html;
         document.getElementById('totalSpecialFund').innerHTML = getTotalSpecialFund().toFixed(2) + ' ₪';
@@ -452,15 +442,14 @@
         let filtered = payments.filter(p => p.month.startsWith(year));
         if(month !== 'all') filtered = filtered.filter(p => p.month.endsWith(`-${month}`));
         let tbody = document.getElementById('incomeTableBody');
-        tbody.innerHTML = filtered.map(p => `
-            <tr>
-                <td>${p.month}</td>
-                <td>${escapeHtml(p.payer)}</td>
-                <td>${p.type === 'regular' ? 'רגיל' : 'מיוחד'}</td>
-                <td class="amount-positive">${p.amount.toFixed(2)} ₪</td>
-                <td>${escapeHtml(p.comment || '')}</td>
-                <td>${isAdmin ? `<button class="delete-btn" onclick="deletePayment('${p.id}')"><i class="fas fa-trash"></i></button>` : ''}</td>
-            </tr>`).join('');
+        tbody.innerHTML = filtered.map(p => `</table>
+            <td>${p.month}</td>
+            <td>${escapeHtml(p.payer)}</td>
+            <td>${p.type === 'regular' ? 'רגיל' : 'מיוחד'}</td>
+            <td class="amount-positive">${p.amount.toFixed(2)} ₪</td>
+            <td>${escapeHtml(p.comment || '')}</td>
+            <td>${isAdmin ? `<button class="delete-btn" onclick="deletePayment('${p.id}')"><i class="fas fa-trash"></i></button>` : ''}</td>
+        </tr>`).join('');
         renderResidentsSummary();
     }
     
@@ -470,16 +459,15 @@
         let filtered = expenses.filter(e => e.month.startsWith(year));
         if(month !== 'all') filtered = filtered.filter(e => e.month.endsWith(`-${month}`));
         let tbody = document.getElementById('expensesTableBody');
-        tbody.innerHTML = filtered.map(e => `
-            <tr>
-                <td>${e.month}</td>
-                <td>${escapeHtml(e.desc)}</td>
-                <td class="amount-negative">${e.amount.toFixed(2)} ₪</td>
-                <td>${e.expenseType === 'emergency' ? 'חירום (התחלק בין הדיירים)' : 'רגיל'}</td>
-                <td>${escapeHtml(e.comment || '')}</td>
-                <td>${e.cloudUrl ? `<a href="${e.cloudUrl}" target="_blank"><i class="fas fa-receipt"></i> קבלה</a>` : 'אין'}</td>
-                <td>${isAdmin ? `<button class="delete-btn" onclick="deleteExpenseItem('${e.id}')"><i class="fas fa-trash"></i></button>` : ''}</td>
-            </tr>`).join('');
+        tbody.innerHTML = filtered.map(e => `<tr>
+            <td>${e.month}</td>
+            <td>${escapeHtml(e.desc)}</td>
+            <td class="amount-negative">${e.amount.toFixed(2)} ₪</td>
+            <td>${e.expenseType === 'emergency' ? 'חירום (התחלק בין הדיירים)' : 'רגיל'}</td>
+            <td>${escapeHtml(e.comment || '')}</td>
+            <td>${e.cloudUrl ? `<a href="${e.cloudUrl}" target="_blank"><i class="fas fa-receipt"></i> קבלה</a>` : 'אין'}</td>
+            <td>${isAdmin ? `<button class="delete-btn" onclick="deleteExpenseItem('${e.id}')"><i class="fas fa-trash"></i></button>` : ''}</td>
+        </tr>`).join('');
     }
     
     function renderForum() { 
@@ -489,26 +477,6 @@
         if(container) container.innerHTML = forum.slice().reverse().map(f => `<div class="forum-message"><strong>${escapeHtml(f.author)}</strong><small style="color:#718096;"> ${new Date(f.timestamp).toLocaleString('he-IL')}</small><div style="margin-top:8px;">${escapeHtml(f.text)}</div></div>`).join(''); 
     }
     function addForumMessage() { if(!currentUser) { alert("רק דיירים מורשים יכולים לכתוב בפורום"); return; } let text = document.getElementById('forumMsgDashboard').value.trim(); if(!text) return; forum.push({ id: 'f' + Date.now(), author: currentUser.name, text: text, timestamp: new Date().toISOString() }); saveAllData(); document.getElementById('forumMsgDashboard').value = ''; renderForum(); }
-    
-    function clearForum() {
-        if(!isAdmin) return;
-        if(confirm("⚠️ האם אתה בטוח שברצונך למחוק את כל ההודעות בפורום? פעולה זו בלתי הפיכה.")) {
-            forum = [];
-            saveAllData();
-            renderForum();
-            alert("✅ הפורום נוקה בהצלחה.");
-        }
-    }
-    
-    function clearAllVotes() {
-        if(!isAdmin) return;
-        if(confirm("⚠️ האם אתה בטוח שברצונך לאפס את כל ההצבעות לכל ההצעות? פעולה זו תמחק את שמות המצביעים ולא ניתנת לביטול.")) {
-            recommendations.forEach(rec => { rec.votesFor = []; rec.status = 'pending'; });
-            saveAllData();
-            renderRecommendations();
-            alert("✅ כל ההצבעות נמחקו.");
-        }
-    }
     
     function renderRecommendations() { 
         let container = document.getElementById('recommendations'), warning = document.getElementById('recommendationAccessWarning'), postArea = document.getElementById('recommendationsPostArea'); 
@@ -652,125 +620,31 @@
     function renderResidentsList() { let container = document.getElementById('residentsListContainer'); if(!container||!isAdmin) return; container.innerHTML = residents.map(r=>`<div class="resident-item"><div><strong>${escapeHtml(r.name)}</strong><br><small>דירה ${escapeHtml(r.apartment)} | 📱 ${r.phone} | קרן מיוחדת: ${getSpecialBalance(r.name).toFixed(2)} ₪</small></div><div><button class="edit-btn" onclick="editResident('${r.id}')"><i class="fas fa-edit"></i></button><button class="delete-btn" onclick="deleteResident('${r.id}')"><i class="fas fa-trash"></i></button></div></div>`).join(''); }
     function updateResidentsSelect() { let sel = document.getElementById('incomeResidentSelect'); if(sel) sel.innerHTML = '<option value="">בחר דייר</option>' + residents.map(r => `<option value="${escapeHtml(r.name)}">${escapeHtml(r.name)} (דירה ${r.apartment})</option>`).join(''); }
     function renderAnnouncementsTargetSelect() { let sel = document.getElementById('announceTargetSelect'); if(sel && isAdmin) sel.innerHTML = '<option value="all">📢 לכל הדיירים</option>' + residents.map(r => `<option value="${r.id}">👤 ${escapeHtml(r.name)} (דירה ${r.apartment})</option>`).join(''); }
-    
-    // פונקציה להורדת דוח אישי הכולל גם הוצאות הבית בשנה האחרונה
     function downloadPersonalReport() { 
-        if(!currentUser){
-            alert("רק דיירים מורשים יכולים להוריד דוח");
-            return;
-        }
-        let userRegular = payments.filter(p => p.payer === currentUser.name && p.type === 'regular');
-        let userSpecial = payments.filter(p => p.payer === currentUser.name && p.type === 'special');
-        let totalRegular = userRegular.reduce((s,p)=>s+p.amount,0);
-        let totalSpecial = userSpecial.reduce((s,p)=>s+p.amount,0);
-        let userDeductions = emergencyDeductions.filter(d=>d.residentName === currentUser.name);
-        let totalDeductions = userDeductions.reduce((s,d)=>s+d.amount,0);
-        let specialBalance = totalSpecial - totalDeductions;
-        
-        // הוצאות הבית בשנה האחרונה (12 חודשים אחורה מהתאריך הנוכחי)
-        const now = new Date();
-        const oneYearAgo = new Date(now.getFullYear()-1, now.getMonth(), now.getDate());
-        const yearAgoStr = oneYearAgo.toISOString().slice(0,7); // YYYY-MM
-        const recentExpenses = expenses.filter(e => e.month >= yearAgoStr);
-        const totalExpensesLastYear = recentExpenses.reduce((s,e)=>s+e.amount,0);
-        
-        let reportLines = [];
-        reportLines.push(`דוח תשלומים אישי - ${currentUser.name}`);
-        reportLines.push(`תאריך הפקת הדוח: ${new Date().toLocaleString('he-IL')}`);
-        reportLines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-        reportLines.push(`📋 תשלומים רגילים (לקופה ראשית):`);
-        if(userRegular.length === 0) reportLines.push(`   * אין תשלומים רגילים`);
-        else userRegular.forEach(p => reportLines.push(`   • ${p.month} : ${p.amount.toFixed(2)} ₪ ${p.comment ? ' ('+p.comment+')' : ''}`));
-        reportLines.push(`   סה"כ תשלומים רגילים: ${totalRegular.toFixed(2)} ₪`);
-        reportLines.push(``);
-        reportLines.push(`💰 תשלומים מיוחדים (לקרן חיסכון):`);
-        if(userSpecial.length === 0) reportLines.push(`   * אין תשלומים מיוחדים`);
-        else userSpecial.forEach(p => reportLines.push(`   • ${p.month} : ${p.amount.toFixed(2)} ₪ ${p.comment ? ' ('+p.comment+')' : ''}`));
-        reportLines.push(`   סה"כ תשלומים מיוחדים: ${totalSpecial.toFixed(2)} ₪`);
-        reportLines.push(``);
-        reportLines.push(`🚨 ניכויי חירום (מתוך הקרן המיוחדת):`);
-        if(userDeductions.length === 0) reportLines.push(`   * אין ניכויי חירום`);
-        else userDeductions.forEach(d => reportLines.push(`   • ${d.month} : ${d.amount.toFixed(2)} ₪ - ${d.description}`));
-        reportLines.push(`   סה"כ ניכויי חירום: ${totalDeductions.toFixed(2)} ₪`);
-        reportLines.push(``);
-        reportLines.push(`🏦 יתרת קרן מיוחדת (חיסכון) נטו: ${specialBalance.toFixed(2)} ₪`);
-        reportLines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-        reportLines.push(`📊 סיכום חודשי שנתי (תשלומים רגילים בלבד):`);
-        let currentYear = new Date().getFullYear().toString();
-        let regularByMonth = {};
-        userRegular.forEach(p => {
-            let month = p.month.slice(5);
-            regularByMonth[month] = (regularByMonth[month] || 0) + p.amount;
-        });
-        for(let m=1; m<=12; m++) {
-            let monthStr = m.toString().padStart(2,'0');
-            let paid = regularByMonth[monthStr] || 0;
-            let expected = monthlyFeeTarget;
-            reportLines.push(`   ${monthStr}/${currentYear}: שולם ${paid.toFixed(2)} ₪ / חודשי קבוע ${expected} ₪ → ${paid >= expected ? '✅' : '⚠️ חסר '+(expected-paid).toFixed(2)+' ₪'}`);
-        }
-        reportLines.push(``);
-        reportLines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-        reportLines.push(`📉 הוצאות הבית בשנה האחרונה (מ-${yearAgoStr} עד ${now.toISOString().slice(0,7)})`);
-        if(recentExpenses.length === 0) {
-            reportLines.push(`   * אין הוצאות רשומות בתקופה זו`);
-        } else {
-            // קבץ לפי חודש
-            const expensesByMonth = {};
-            recentExpenses.forEach(e => {
-                if(!expensesByMonth[e.month]) expensesByMonth[e.month] = [];
-                expensesByMonth[e.month].push(e);
-            });
-            const sortedMonths = Object.keys(expensesByMonth).sort();
-            for(let mon of sortedMonths) {
-                let monthExpenses = expensesByMonth[mon];
-                let monthTotal = monthExpenses.reduce((s,e)=>s+e.amount,0);
-                reportLines.push(`   📆 ${mon} - סה"כ: ${monthTotal.toFixed(2)} ₪`);
-                for(let e of monthExpenses) {
-                    let typeLabel = e.expenseType === 'emergency' ? 'חירום' : 'רגילה';
-                    reportLines.push(`      • ${e.desc} (${typeLabel}) : ${e.amount.toFixed(2)} ₪ ${e.comment ? '['+e.comment+']' : ''}`);
-                }
-            }
-        }
-        reportLines.push(`   סה"כ הוצאות בתקופה: ${totalExpensesLastYear.toFixed(2)} ₪`);
-        reportLines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-        reportLines.push(`* דוח זה הופק אוטומטית ממערכת "אינדקס אחד".`);
-        
-        const fileContent = reportLines.join('\n');
-        const blob = new Blob([fileContent], {type: 'text/plain;charset=utf-8'});
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.download = `dow_${currentUser.name.replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.txt`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        alert("✅ הדוח האישי (כולל הוצאות הבית) נשמר כקובץ טקסט.");
+        if(!currentUser){alert("רק דיירים מורשים יכולים להוריד דוח"); return;} 
+        let userRegular = payments.filter(p => p.payer === currentUser.name && p.type === 'regular').reduce((s,p)=>s+p.amount,0); 
+        let userSpecial = payments.filter(p => p.payer === currentUser.name && p.type === 'special').reduce((s,p)=>s+p.amount,0); 
+        let userDeductions = emergencyDeductions.filter(d=>d.residentName === currentUser.name).reduce((s,d)=>s+d.amount,0); 
+        let specialBalance = userSpecial - userDeductions; 
+        alert(`דוח אישי:\nתשלומים רגילים: ${userRegular} ₪\nתשלומים מיוחדים: ${userSpecial} ₪\nניכויי חירום: ${userDeductions} ₪\nיתרת קרן מיוחדת: ${specialBalance} ₪`); 
     }
-    
     async function sendWhatsAppReceipt() { if(!isAdmin) return; let residentName = document.getElementById('incomeResidentSelect').value; let amount = document.getElementById('incomeAmountAdd').value; let month = document.getElementById('incomeMonthAdd').value; if(!residentName || !amount) { alert("יש לבחור דייר ולהזין סכום"); return; } let resident = residents.find(r => r.name === residentName); if(!resident || !resident.phone) { alert("לא נמצא מספר טלפון לדייר"); return; } let receiptMsg = `*קבלה על תשלום* 🧾\nדייר: ${resident.name}\nחודש: ${month}\nסכום: ${amount} ₪\nתודה!`; let cleanPhone = resident.phone.replace(/\D/g,''); if(!cleanPhone.startsWith('972')) cleanPhone='972'+cleanPhone; window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(receiptMsg)}`, '_blank'); }
     
     function saveMonthlyFee() { if(!isAdmin) { alert("רק מנהל יכול לשנות סכום זה"); return; } let newFee = parseFloat(document.getElementById('monthlyFeeTarget').value); if(isNaN(newFee) || newFee <= 0) { alert("סכום לא תקין"); return; } monthlyFeeTarget = newFee; saveAllData(); document.getElementById('monthlyFeeStatus').innerHTML = "✅ נשמר"; setTimeout(()=>document.getElementById('monthlyFeeStatus').innerHTML="",2000); renderResidentsSummary(); }
     
     function updateVisibilityByRole() {
+        // ניהול כפתורי ניווט: כפתורי הכנסות והוצאות מוסתרים לדיירים רגילים ולאורחים
         const incomeNav = document.getElementById('incomeNavBtn');
         const expensesNav = document.getElementById('expensesNavBtn');
         const residentsNav = document.getElementById('residentsNavBtn');
         const quickActionsCard = document.getElementById('quickActionsCard');
         const residentsSummaryCard = document.getElementById('residentsSummaryCard');
-        const clearForumBtn = document.getElementById('clearForumBtn');
-        const clearVotesBtn = document.getElementById('clearVotesBtn');
-        const personalReportCardDashboard = document.getElementById('personalReportCardDashboard');
-        
-        if(clearForumBtn) clearForumBtn.style.display = isAdmin ? 'inline-block' : 'none';
-        if(clearVotesBtn) clearVotesBtn.style.display = isAdmin ? 'inline-block' : 'none';
-        if(personalReportCardDashboard) personalReportCardDashboard.style.display = currentUser ? 'block' : 'none';
-        
         if(!isAdmin) {
             if(incomeNav) incomeNav.classList.add('hidden-nav');
             if(expensesNav) expensesNav.classList.add('hidden-nav');
             if(quickActionsCard) quickActionsCard.style.display = 'none';
             if(residentsSummaryCard && residentsSummaryCard.style) residentsSummaryCard.style.display = 'none';
+            // גם אם ניסה לעבור לדף - נחזיר לדשבורד (בגלל שהכפתור מוסתר, אבל יש אפשרות ישירה בכתובת)
             if(document.getElementById('incomePage').classList.contains('active') || document.getElementById('expensesPage').classList.contains('active')) {
                 navigateTo('dashboard');
             }
@@ -780,11 +654,13 @@
             if(quickActionsCard) quickActionsCard.style.display = 'block';
             if(residentsSummaryCard && residentsSummaryCard.style) residentsSummaryCard.style.display = 'block';
         }
+        // אורח לא רואה כפתורים בכלל – כבר מטופל על ידי הוספת hidden-nav
         if(!currentUser && !isAdmin) {
             if(incomeNav) incomeNav.classList.add('hidden-nav');
             if(expensesNav) expensesNav.classList.add('hidden-nav');
         }
         if(currentUser && !isAdmin) {
+            // דייר רגיל: רואה רק את הכפתור לדשבורד, להודעות, לדיירים? לא, דיירים רק למנהל.
             if(residentsNav) residentsNav.style.display = 'none';
         }
         if(isAdmin && residentsNav) residentsNav.style.display = 'block';
@@ -815,6 +691,7 @@
     }
     
     function navigateTo(page) { 
+        // בדיקת הרשאות: דייר רגיל לא יכול לגשת לדפי הכנסות/הוצאות
         if(!isAdmin && (page === 'income' || page === 'expenses')) {
             alert("עמוד זה זמין למנהל בלבד");
             return;
@@ -855,8 +732,7 @@
     document.getElementById('addExpenseBtn').onclick=addExpense; 
     document.getElementById('postMsgDashboard').onclick=addForumMessage; 
     document.getElementById('submitRecommendationBtn').onclick=submitRecommendation; 
-    document.getElementById('downloadPersonalReportBtn').onclick=downloadPersonalReport;
-    document.getElementById('downloadPersonalReportDashboardBtn').onclick=downloadPersonalReport;
+    document.getElementById('downloadPersonalReportBtn').onclick=downloadPersonalReport; 
     document.getElementById('sendWhatsAppReceiptBtn').onclick=sendWhatsAppReceipt;
     document.getElementById('addResidentBtn')?.addEventListener('click',addResident); 
     document.getElementById('incomeYearFilter').onchange=()=>{if(isAdmin)renderIncome();}; 
@@ -869,8 +745,6 @@
     document.getElementById('adminBtn').onclick=()=>{let pwd=prompt("קוד גישה למנהל:"); if(pwd==="bafy2020"){isAdmin=true; renderAll(); alert("ברוך הבא, מנהל!");} else alert("קוד שגוי!");};
     document.getElementById('createAnnouncementBtn').onclick=createAndSendAnnouncement;
     document.getElementById('saveMonthlyFeeBtn').onclick=saveMonthlyFee;
-    document.getElementById('clearForumBtn')?.addEventListener('click', clearForum);
-    document.getElementById('clearVotesBtn')?.addEventListener('click', clearAllVotes);
     
     let savedUser=localStorage.getItem('currentUser'); if(savedUser){try{currentUser=JSON.parse(savedUser);}catch(e){currentUser=null;}}
     loadAllData().then(()=>{updateAuthUI();});
